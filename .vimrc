@@ -128,3 +128,9 @@ vnoremap <C-S-J> :m '>+1<CR>gv=gv
 
 # Map <Ctrl+N> to toggle relative line numbers
 nmap <C-N> :set invrnu<CR>
+
+# switch the line-number style, in normal mode, and insert mode
+au FocusLost * :set number
+au FocusGained * :set relativenumber
+au InsertEnter * :set number
+au InsertLeave * :set relativenumber
