@@ -76,7 +76,7 @@ set ignorecase
 set incsearch
 set laststatus=2
 set list
-set listchars=tab:>-,trail:-
+set listchars=tab:▸\ ,trail:-,eol:¬
 set expandtab
 set shiftwidth=4
 set smarttab
