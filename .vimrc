@@ -134,3 +134,7 @@ au FocusLost * :set number
 au FocusGained * :set relativenumber
 au InsertEnter * :set number
 au InsertLeave * :set relativenumber
+
+# Use F2 to toggle set paste
+nnoremap <F2> :set invpaste paste?<CR>
+set pastetoggle=<F2>
