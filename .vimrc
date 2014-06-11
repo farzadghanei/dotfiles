@@ -58,7 +58,12 @@ set shell=bash
 set autoindent
 set backspace=indent,eol,start
 set nowrap
-set number
+
+# Line Numbers
+set nu
+set rnu
+highlight LineNr term=bold cterm=NONE ctermfg=DarkGrey ctermbg=NONE gui=NONE guifg=DarkGrey guibg=NONE
+
 set ruler
 set scrolloff=5
 set cmdheight=2
@@ -121,3 +126,5 @@ inoremap <C-S-K> <Esc>:m .-2<CR>==gi
 vnoremap <C-S-K> :m '<-2<CR>gv=gv
 vnoremap <C-S-J> :m '>+1<CR>gv=gv
 
+# Map <Ctrl+N> to toggle relative line numbers
+nmap <C-N> :set invrnu<CR>
