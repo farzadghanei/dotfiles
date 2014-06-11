@@ -1,6 +1,9 @@
-dotfiles
+vimrc
 ========
 
-personal configurations for different tools (vim, tmux, etc).
+My vimrc configuration
 
-forked from carloslima/dotfiles
+This is initially forked from [farzadghanei/dotfiles](https://github.com/farzadghanei/dotfiles) which is originally influenced from [carloslima/dotfiles](https://github.com/carloslima/dotfiles).
+I've customized it just a bit, with some stuff that I learned from [Athar](https://github.com/atharh).
+
+

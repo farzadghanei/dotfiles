@@ -58,7 +58,12 @@ set shell=bash
 set autoindent
 set backspace=indent,eol,start
 set nowrap
-set number
+
+# Line Numbers
+set nu
+set rnu
+highlight LineNr term=bold cterm=NONE ctermfg=DarkGrey ctermbg=NONE gui=NONE guifg=DarkGrey guibg=NONE
+
 set ruler
 set scrolloff=5
 set cmdheight=2
@@ -71,7 +76,7 @@ set ignorecase
 set incsearch
 set laststatus=2
 set list
-set listchars=tab:>-,trail:-
+set listchars=tab:▸\ ,trail:-,eol:¬
 set expandtab
 set shiftwidth=4
 set smarttab
@@ -121,3 +126,15 @@ inoremap <C-S-K> <Esc>:m .-2<CR>==gi
 vnoremap <C-S-K> :m '<-2<CR>gv=gv
 vnoremap <C-S-J> :m '>+1<CR>gv=gv
 
+# Map <Ctrl+N> to toggle relative line numbers
+nmap <C-N> :set invrnu<CR>
+
+# switch the line-number style, in normal mode, and insert mode
+au FocusLost * :set number
+au FocusGained * :set relativenumber
+au InsertEnter * :set number
+au InsertLeave * :set relativenumber
+
+# Use F2 to toggle set paste
+nnoremap <F2> :set invpaste paste?<CR>
+set pastetoggle=<F2>
