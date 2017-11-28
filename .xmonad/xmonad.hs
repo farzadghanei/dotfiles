@@ -256,6 +256,12 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
 
     -- ungrab mouse cursor from applications which can grab it (games)
     , ((modMask,                xK_i        ), spawn "xdotool key XF86Ungrab")
+
+    -- audio keys
+    , ((modMask,             xK_F9       ), spawn "dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause")
+    , ((modMask,             xK_F10      ), spawn "amixer set Master toggle")
+    , ((modMask,             xK_F11      ), spawn "amixer set Master 5%-")
+    , ((modMask,             xK_F12      ), spawn "amixer set Master 5%+")
     ]
     ++
     -- mod-[1..9] %! Switch to workspace N
