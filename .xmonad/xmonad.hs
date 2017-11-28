@@ -43,7 +43,7 @@ conf = ewmh xfceConfig
                                            <+> manageDocks
                                            <+> manageHook xfceConfig
         , layoutHook        = avoidStruts (myLayoutHook)
-        , handleEventHook   = ewmhDesktopsEventHook <+> fullscreenEventHook 
+        , handleEventHook   = ewmhDesktopsEventHook <+> fullscreenEventHook
         , borderWidth       = 2
         , focusedBorderColor= "#0087ff"
         , normalBorderColor = "#444444"
@@ -204,7 +204,7 @@ myKeys :: XConfig Layout -> M.Map (KeyMask, KeySym) (X ())
 myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
     -- launching and killing programs
     -- [ ((modMask,                xK_Return   ), spawn "urxvt")
-    [ ((modMask,                xK_Return   ), spawn "gnome-terminal")
+    [ ((modMask,                xK_Return   ), spawn "x-terminal-emulator")
     , ((modMask,                xK_o        ), spawn "xfrun4")
     -- , ((modMask,                xK_f        ), spawn "pcmanfm")
     , ((modMask,                xK_f        ), spawn "thunar")
