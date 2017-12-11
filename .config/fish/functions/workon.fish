@@ -7,7 +7,6 @@ function --description "work on a work project" workon
         echo "no project name specified!"
     else
         if test -e $venv_path
-            venv $name
             source "$venv_path/$name/bin/activate.fish"
         end
 
