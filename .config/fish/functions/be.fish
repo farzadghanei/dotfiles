@@ -7,7 +7,7 @@ function --description "work on a project" be
         echo "no project name specified!"
     else
         if test -e $venv_path
-            workon $name
+            venv $name
         end
 
         if test -e $work_path
