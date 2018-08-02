@@ -53,11 +53,21 @@ Plugin 'joonty/vdebug'
 
 " lang specific modules
 Plugin 'ekalinin/Dockerfile.vim'
+Plugin 'c9s/perlomni.vim'
+
+"Plugin 'python-mode/python-mode'
 "Plugin 'rust-lang/rust.vim'
 "Plugin 'elixir-lang/vim-elixir'
 "Plugin 'hhvm/vim-hack'
 "Plugin 'alvan/vim-php-manual'
-"Plugin 'c9s/perlomni.vim'
+"Plugin 'puppetlabs/puppet-syntax-vim'
+"Plugin 'neovimhaskell/haskell-vim'
+" required by vim-markdown. Text alignment and filtering
+" Plugin 'godlygeek/tabular'
+" Plugin 'plasticboy/vim-markdown'
+"    let g:vim_markdown_no_default_key_mappings = 1
+"    let g:vim_markdown_folding_disabled = 1
+
 
 call vundle#end()
 filetype plugin indent on     " required!
