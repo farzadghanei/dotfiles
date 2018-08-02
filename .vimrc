@@ -34,6 +34,8 @@ Plug 'kien/ctrlp.vim'
   \ }
 
 Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+  let g:airline_theme='powerlineish'
 
 Plug 'tpope/vim-surround'
 Plug 'joonty/vdebug'
