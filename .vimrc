@@ -2,77 +2,7 @@
 set nocompatible               " be iMproved
 filetype off                   " required!
 
-set rtp+=~/.vim/bundle/Vundle.vim
-call vundle#begin()
-
-" Plugins here:
-"
-" shortnames come from http://github.com
-" long names could include a git repo URL
-"
-" Run :PluginInstall! to install/update bundles
-"
-" let Vundle manage Vundle
-" required! 
-Plugin 'VundleVim/Vundle.vim'
-
-Plugin 'tpope/vim-fugitive'
-Plugin 'Lokaltog/vim-easymotion'
-Plugin 'scrooloose/nerdcommenter'
-"Plugin 'mileszs/ack.vim'
-"Plugin 'ervandew/supertab'
-"Plugin 'jeetsukumaran/vim-buffergator'
-
-Plugin 'majutsushi/tagbar'
-  nmap <F4> :TagbarToggle<CR>
-
-Plugin 'airblade/vim-gitgutter'
-  let g:gitgutter_sign_column_always = 0
-
-Plugin 'vim-scripts/The-NERD-tree'
-  let NERDTreeWinPos = 'left'
-  map <F3> :NERDTreeToggle<CR>
-  nnoremap <Leader>ff :NERDTreeFind<CR>
-
-" YouCompeleteMe requires vim 7.3+
-" Plugin 'Valloric/YouCompleteMe'
-
-Plugin 'kien/ctrlp.vim'
-  let g:ctrlp_working_path_mode = 0 " dont manage working directory.
-  let g:ctrlp_custom_ignore = {
-  \ 'dir':  '\v\c\.(git|svn)$',
-  \ 'file': '\v\c\.(swf|bak|png|gif|mov|ico|jpg|pdf)$',
-  \ }
-
-Plugin 'Lokaltog/vim-powerline'
-  let g:Powerline_symbols = 'fancy'
-  highlight clear SignColumn
-
-Plugin 'tpope/vim-surround'
-Plugin 'joonty/vdebug'
-
-" lang specific modules
-Plugin 'ekalinin/Dockerfile.vim'
-Plugin 'c9s/perlomni.vim'
-
-"Plugin 'python-mode/python-mode'
-"Plugin 'rust-lang/rust.vim'
-"Plugin 'elixir-lang/vim-elixir'
-"Plugin 'hhvm/vim-hack'
-"Plugin 'alvan/vim-php-manual'
-"Plugin 'puppetlabs/puppet-syntax-vim'
-"Plugin 'neovimhaskell/haskell-vim'
-" required by vim-markdown. Text alignment and filtering
-" Plugin 'godlygeek/tabular'
-" Plugin 'plasticboy/vim-markdown'
-"    let g:vim_markdown_no_default_key_mappings = 1
-"    let g:vim_markdown_folding_disabled = 1
-
-
-call vundle#end()
-filetype plugin indent on     " required!
-
-"Use plug.vim to install additional plugins
+"Use plug.vim to install plugins
 call plug#begin('~/.vim/plugged')
 
 " this assumes fzf is installed separately on ~/.apps/fzf
@@ -80,6 +10,50 @@ call plug#begin('~/.vim/plugged')
 Plug '~/.apps/fzf' | Plug 'junegunn/fzf.vim'
   noremap <C-T> :Files<CR>
   noremap <Leader>t :Buffers<CR>
+
+Plug 'tpope/vim-fugitive'
+Plug 'Lokaltog/vim-easymotion'
+Plug 'scrooloose/nerdcommenter'
+
+Plug 'majutsushi/tagbar'
+  nmap <F4> :TagbarToggle<CR>
+
+Plug 'airblade/vim-gitgutter'
+  let g:gitgutter_sign_column_always = 0
+
+Plug 'vim-scripts/The-NERD-tree'
+  let NERDTreeWinPos = 'left'
+  map <F3> :NERDTreeToggle<CR>
+   nnoremap <Leader>ff :NERDTreeFind<CR>
+
+Plug 'kien/ctrlp.vim'
+  let g:ctrlp_working_path_mode = 0 " dont manage working directory.
+  let g:ctrlp_custom_ignore = {
+  \ 'dir':  '\v\c\.(git|svn)$',
+  \ 'file': '\v\c\.(swf|bak|png|gif|mov|ico|jpg|pdf)$',
+  \ }
+
+Plug 'vim-airline/vim-airline'
+
+Plug 'tpope/vim-surround'
+Plug 'joonty/vdebug'
+
+" lang specific modules
+Plug 'puppetlabs/puppet-syntax-vim'
+Plug 'ekalinin/Dockerfile.vim'
+Plug 'c9s/perlomni.vim'
+Plug 'rust-lang/rust.vim'
+
+"Plug 'python-mode/python-mode'
+"Plug 'elixir-lang/vim-elixir'
+"Plug 'hhvm/vim-hack'
+"Plug 'alvan/vim-php-manual'
+"Plug 'neovimhaskell/haskell-vim'
+" required by vim-markdown. Text alignment and filtering
+" Plug 'godlygeek/tabular'
+" Plug 'plasticboy/vim-markdown'
+"    let g:vim_markdown_no_default_key_mappings = 1
+"    let g:vim_markdown_folding_disabled = 1
 
 call plug#end()
 
