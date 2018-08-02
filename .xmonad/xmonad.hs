@@ -150,12 +150,13 @@ myManageHook = composeAll [ matchAny v --> a | (v,a) <- myActions]
             , ("Xfce4-notifyd"                  , doIgnore)
             , ("MPlayer"                        , doFloat)
             , ("mpv"                            , doFloat)
+            , ("KeePassX"                       , doShift "7")
             , ("Oracle VM VirtualBox Manager"   , doShift "7")
             , ("VirtualBox"                     , doShift "7")
             , ("Spotify"                        , doShift "8")
             , ("Mozilla Thunderbird"            , doShift "9")
-            , ("Google Chrome"                  , doShift "0")
             , ("Chrome"                         , doShift "0")
+            , ("Google Chrome"                  , doShift "0")
             , ("New Tab - Google Chrome"        , doShift "0")
             , ("animation-SpriteTestWindow"     , doFloat)
             , ("gimp-image-window"              , (ask >>= doF . W.sink))
@@ -195,7 +196,6 @@ myManageHook = composeAll [ matchAny v --> a | (v,a) <- myActions]
             , ("animation-playbac"              , doFloat)
             , ("gimp-file-save"                 , doFloat)
             , ("file-jpeg"                      , doFloat)
-            , ("KeePass"                        , doFloat)
             , ("options"                        , doFloat)
             ]
 
