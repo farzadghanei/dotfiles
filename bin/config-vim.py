@@ -20,9 +20,7 @@ def configure_vim(target, ask=True):
     if not ask_yes_no("Configure vim on: '{}'?".format(target)):
         return False
     copy_dot_vim(dotfiles, target, ask)
-    if init_vundle(target, ask):
-        install_vim_plugins_with_vundle(target, ask)
-    install_vim_plugins_with_plug(target, ask)
+    install_plugins_with_plug(target, ask)
 
 
 def copy_dot_vim(src, dst, ask=True):
@@ -48,31 +46,7 @@ def copy_dot_vim(src, dst, ask=True):
     shutil.copytree(src_dot_vim, dst_dot_vim)
 
 
-def init_vundle(root, ask=True):
-    if ask and not ask_yes_no(
-            "Install Vundle (required to install most plugins)?"):
-        return False
-    dot_vim = os.path.join(root, '.vim')
-    if not os.path.exists(dot_vim):
-        os.mkdir(dot_vim)
-    bundle_path = os.path.join(dot_vim, 'bundle')
-    if not os.path.exists(bundle_path):
-        os.mkdir(bundle_path)
-    vundle_path = os.path.join(bundle_path, 'Vundle.vim')
-    shutil.rmtree(vundle_path, True)
-    subprocess.call([
-        'git', 'clone', 'https://github.com/gmarik/Vundle.vim.git', vundle_path
-    ])
-    return True
-
-
-def install_vim_plugins_with_vundle(target, ask):
-    if ask and ask_yes_no("Install Vundle plugins?"):
-        vimrc = os.path.join(target, '.vimrc')
-        subprocess.call(['vim', '-u', vimrc, '+PluginInstall'])
-
-
-def install_vim_plugins_with_plug(target, ask):
+def install_plugins_with_plug(target, ask):
     """
     Plugin management tool, used for FZF vim plugin
     https://github.com/junegunn/vim-plug
