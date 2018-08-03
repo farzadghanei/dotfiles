@@ -26,7 +26,7 @@ Plug 'vim-scripts/The-NERD-tree'
   map <F3> :NERDTreeToggle<CR>
    nnoremap <Leader>ff :NERDTreeFind<CR>
 
-Plug 'kien/ctrlp.vim'
+Plug 'ctrlpvim/ctrlp.vim'
   let g:ctrlp_working_path_mode = 0 " dont manage working directory.
   let g:ctrlp_custom_ignore = {
   \ 'dir':  '\v\c\.(git|svn)$',
@@ -38,7 +38,7 @@ Plug 'vim-airline/vim-airline-themes'
   let g:airline_theme='powerlineish'
 
 Plug 'tpope/vim-surround'
-Plug 'joonty/vdebug'
+Plug 'vim-vdebug/vdebug'
 
 " lang specific modules
 Plug 'puppetlabs/puppet-syntax-vim'
