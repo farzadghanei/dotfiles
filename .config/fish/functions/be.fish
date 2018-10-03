@@ -1,4 +1,4 @@
-function --description "work on a project" be
+function be --description "work on a project"
     set -l name $argv[1]
     set -l venv_path ~/.virtualenvs/$name
     set -l work_path ~/projects/$name

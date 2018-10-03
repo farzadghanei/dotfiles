@@ -1,4 +1,4 @@
-function --description "work on a work project" workon
+function workon --description "work on a work project"
     set -l name $argv[1]
     set -l work_path ~/work/$name
     set -l venv_path $work_path/.virtualenvs
