@@ -1,0 +1,11 @@
+#!/bin/bash
+
+echo "removing stopped containers ..."
+docker ps -q --filter "status=exited" | xargs --no-run-if-empty docker rm
+
+echo "removing dangling images ..."
+docker images -q --filter=dangling=true | xargs --no-run-if-empty docker rmi
+
+echo "removing dangling volumes ..."
+docker volume ls -q --filter=dangling=true | xargs  --no-run-if-empty -r docker volume rm
+
