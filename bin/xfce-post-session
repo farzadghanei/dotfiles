@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Run after the XFCE session start to customize the session
+# Use Xmonad to replace XFCe window manager.
+# After Xmonad takes over, restart XFCE panel to ensure
+# it's displayed properly
+
+# if this file exists, will replace Window manager by Xmonad
+XMONAD_REPLACE_FILE=~/.xmonad-replace-wm
+XMONAD_PROC_NAME=xmonad-x86_64
+
+function log_ {
+    logger -t custom-xfce-post-session "$1"
+    if [ -t 1 ]; then echo "$1"; fi
+}
+
+function xmonad_replace_wm {
+    log_ "replacing window manager with Xmonad"
+    nohup xmonad --replace >/dev/null 2>&1 &
+}
+
+function wait_for_xmonad {
+    log_ "waiting for Xmonad to start ..."
+    for i in $(seq 1 15); do pgrep $XMONAD_PROC_NAME >/dev/null && break; sleep 1; done;
+}
+
+function reload_xfce_panel {
+    log_ "restarting the XFCE panel"
+    xfce4-panel -r
+}
+
+if [ -e "$XMONAD_REPLACE_FILE" ]; then
+    if pgrep $XMONAD_PROC_NAME >/dev/null; then
+        log_ "Xmonad already running!"
+    else
+        xmonad_replace_wm
+        wait_for_xmonad
+    fi
+    reload_xfce_panel
+else
+    log_ "file $XMONAD_REPLACE_FILE does not exist. will not replace window manager"
+fi
