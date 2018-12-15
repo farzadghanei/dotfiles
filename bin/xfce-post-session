@@ -1,9 +1,12 @@
 #!/bin/bash
 
 # Run after the XFCE session start to customize the session
-# Use Xmonad to replace XFCe window manager.
+# Use Xmonad to replace XFCE window manager.
 # After Xmonad takes over, restart XFCE panel to ensure
 # it's displayed properly
+#
+# The script is released under the terms of ISC license.
+# See https://opensource.org/licenses/ISC for more info
 
 # if this file exists, will replace Window manager by Xmonad
 XMONAD_REPLACE_FILE=~/.xmonad-replace-wm

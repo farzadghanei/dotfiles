@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 
-'''
-    ftpd
-    ~~~~
-
-Script to setup an FTP server using "pyftpdlib".
-The script is released under the ISC license.
+"""
+ftpd
+~~~~
+Setup an FTP server using "pyftpdlib".
+The script is released under the terms of ISC license.
 
 License:
-
-Copyright (c) 2015, Farzad Ghanei
+Copyright (c) 2015-2018, Farzad Ghanei https://www.ghanei.net
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -22,7 +20,7 @@ FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATS
 RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-'''
+"""
 
 from __future__ import print_function
 

@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Cleanup dangling Docker images/containers/volumes
+#
+# The script is released under the terms of ISC license.
+# See https://opensource.org/licenses/ISC for more info
+
 echo "removing stopped containers ..."
 docker ps -q --filter "status=exited" | xargs --no-run-if-empty docker rm
 
