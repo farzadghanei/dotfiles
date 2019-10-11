@@ -3,8 +3,11 @@
 [core]
     whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
     excludesfile = ~/.gitignore
+    editor = vim
 [color]
     ui = auto
     diff = auto
     branch = auto
     status = auto
+[diff]
+    noprefix = true
