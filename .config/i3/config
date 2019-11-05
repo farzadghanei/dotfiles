@@ -150,9 +150,25 @@ bar {
         tray_output primary
 }
 
+# --- customizations ---
+# keyboard layouts
+exec "setxkbmap -layout us,ir"
+exec "setxkbmap -option 'grp:alt_shift_toggle'"
 
-# key bindings
-# Audio controls
+# application shortcuts
+bindsym Ctrl+Mod1+l exec slock
+bindsym $mod+Shift+s exec spotify
+bindsym $mod+Shift+g exec google-chrome
+
+# application-workspace assignments
+assign [class="Keepassx"] → 7
+for_window [class="Spotify"] move to workspace 8
+assign [class="Google-chrome"] → 10
+
+# move workspace
+bindsym $mod+Shift+greater move workspace to output right
+
+# audio controls
 bindsym $mod+F10 exec --no-startup-id amixer set Master toggle
 bindsym $mod+F11 exec --no-startup-id amixer set Master 5%-
 bindsym $mod+F12 exec --no-startup-id amixer set Master 5%+
@@ -160,5 +176,5 @@ bindsym XF86AudioRaiseVolume exec --no-startup-id amixer set Master 5%+
 bindsym XF86AudioLowerVolume exec --no-startup-id amixer set Master 5%-
 bindsym XF86AudioMute exec --no-startup-id amixer set Master toggle
 
-# Media controls
+# media controls
 bindsym $mod+F9 exec --no-startup-id dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause
