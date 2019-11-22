@@ -192,6 +192,7 @@ bar {
     status_command i3status
     tray_output primary
     font pango:DejaVu Sans Mono 9
+    separator_symbol " ❙ "
     colors {
         background #000000
         statusline #D0D0D0
