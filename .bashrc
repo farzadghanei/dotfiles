@@ -29,8 +29,10 @@ shopt -s checkwinsize
 # match all files and zero or more directories and subdirectories.
 shopt -s globstar
 
+# prompt with hostname
+# export PS1="\[\e[32m\]\u\[\e[m\]@\[\e[36m\]\h\[\e[m\] \W \$?$ "
 # simple prompt
-export PS1="\[\e[32m\]\u\[\e[m\]@\[\e[36m\]\h\[\e[m\] \W \$?$ "
+export PS1="\[\e[36m\]\h\[\e[m\] \W \$?$ "
 
 # aliases
 alias ll='ls -lF --color'
