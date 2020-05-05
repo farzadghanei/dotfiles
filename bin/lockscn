@@ -1,0 +1,78 @@
+#!/bin/bash
+
+# ISC License (ISC)
+# Copyright 2020 Farzad Ghanei
+#
+# Permission to use, copy, modify, and/or distribute this software for any purpose
+# with or without fee is hereby granted, provided that the above copyright notice and
+# this permission notice appear in all copies.
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD
+# TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.
+# IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+# CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+# PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+# ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+read -r -d '' USAGE <<EOU
+locks the screen using other lock screen applications if available.
+supported applications: i3lock, slock, dm-tool
+
+usage $0
+
+options:
+    -h, --help  show ths help and exit
+
+config file:
+~/.lockscnrc is sourced where these variables can configure lockscn:
+    LOCK_APPS:   ordered space separated list of lock screen applications to try
+                 example: LOCK_APPS='slock dm-tool i3lock'
+    I3LOCK_ARGS: args passed to i3lock
+                 example: I3LOCK_ARGS='-u -c a1a1a1'
+
+environment variables:
+config directives are shell variables, so could be passed upon invocation, only
+if not already defined in the config file.
+example: env LOCK_APPS=slock $0
+
+exits with code 127 if no lock screen application is found
+EOU
+
+if [[ "$@" =~ '-h' || "$@" =~ 'help' ]]; then
+    echo "$USAGE"
+    exit
+fi
+
+if [[ -e ~/.lockscnrc ]]; then
+    source ~/.lockscnrc
+fi
+
+# default order of finding the lock screen app
+DEFAULT_LOCK_APPS=(i3lock slock dm-tool)
+
+_lock_i3lock() {
+    exec i3lock $I3LOCK_ARGS
+}
+
+_lock_slock() {
+    exec slock
+}
+
+_lock_dm-tool() {
+    exec dm-tool lock
+}
+
+# convert to array
+read -r -a LOCK_APPS <<< "$LOCK_APPS"
+
+# use configured apps first, fallback on defaults
+APPS=("${LOCK_APPS[@]}" "${DEFAULT_LOCK_APPS[@]}")
+
+for app in "${APPS[@]}"; do
+    if type -t _lock_$app >/dev/null && command -v $app >/dev/null; then
+        _lock_$app
+        exit # if a future _lock_* didn't exec/exit
+    fi
+done
+
+echo "found no lock screen application. install a supported one (see help)" >&2
+exit 127
