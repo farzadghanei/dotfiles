@@ -6,3 +6,4 @@ Personal configurations for different tools (vim, tmux, etc) and some helpers sc
 
 All scripts and code snippets in this repository are released under the terms of the
 [ISC license](https://opensource.org/licenses/ISC), unless specified otherwise.
+Please see the LICENSE file for more details.
