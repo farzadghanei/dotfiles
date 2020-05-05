@@ -1,5 +1,9 @@
-"based on kraihlight from
-"https://github.com/tempire/dotvim/blob/master/colors/kraihlight.vim
+" Colorfulnight (vim dark color scheme)
+" https://github.com/farzadghanei/dotfiles
+" Author: Farzad Ghanei <farzad.ghanei@tutanota.com>
+" License: ISC (https://opensource.org/licenses/ISC)
+" Note: Based on vim color kraihlight from
+" https://github.com/tempire/dotvim/blob/master/colors/kraihlight.vim
 
 set background=dark
 
