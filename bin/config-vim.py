@@ -1,12 +1,11 @@
-#!/usr/bin/env python
-
+#!/usr/bin/env python3
 """
 Configure VIM with the configurations from this repository.
 
 This script is released under the terms of ISC license.
 
 License:
-Copyright (c) 2017-2018, Farzad Ghanei https://www.ghanei.net
+Copyright (c) 2017 Farzad Ghanei (https://www.ghanei.net)
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -21,19 +20,18 @@ NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 """
 
-__version__   = '1.0.0'
-
 import sys
 import os
 import shutil
 import subprocess
 
+__version__   = '2.0.0'
 dotfiles = os.path.dirname(os.path.dirname(__file__))
 
 
 def ask_yes_no(msg, default_accept=True):
     default = ' [Y/n] ' if default_accept else ' [y/N] '
-    ans = raw_input(msg + default).strip().lower()
+    ans = input(msg + default).strip().lower()
     if default_accept:
         return ans != 'n'
     return ans == 'y'
