@@ -20,7 +20,7 @@ supported applications: i3lock, slock, dm-tool
 usage $0
 
 options:
-    -h, --help  show ths help and exit
+    -h, --help  show this help and exit
 
 config file:
 ~/.lockscnrc is sourced where these variables can configure lockscn:
