@@ -1,0 +1,86 @@
+#!/bin/bash
+
+# ISC License (ISC)
+# Copyright 2020 Farzad Ghanei
+# Permission to use, copy, modify, and/or distribute this software for any purpose
+#
+# with or without fee is hereby granted, provided that the above copyright notice and
+# this permission notice appear in all copies.
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD
+# TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.
+# IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+# CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+# PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+# ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+
+read -r -d '' USAGE << EOU
+suspend the system using other suspend application if available.
+supported applications: xfce4-session-logout, dbus-send
+
+usage: $0 [options]
+
+options
+    -h          show this help and exit
+
+config file:
+~/.suspendrc is sourced if available.
+    SUSPEND_APPS:   ordered space separated list of applications to try
+                 example: SUSPEND_APPS='dbus-send'
+
+environment variables:
+config directives are shell variables, so could be passed upon invocation, only
+if not already defined in the config file.
+example: env SUSPEND_APPS=dbus-send $0
+
+exits with code 127 if no suspend application is found
+EOU
+
+while getopts ":h" flag; do
+case "$flag" in
+    h)
+        echo "$USAGE"
+        exit
+        ;;
+esac
+done
+
+# default order of apps to suspend the system
+DEFAULT_APPS=(systemctl xfce4-session-logout dbus-send)
+
+if [[ -e ~/.suspendrc ]]; then
+    source ~/.suspendrc
+fi
+
+_suspend_xfce4-session-logout() {
+    xfce4-session-logout --suspend
+}
+
+_suspend_dbus-send() {
+    dbus-send --system --print-reply \
+                   --dest="org.freedesktop.UPower" \
+                   /org/freedesktop/UPower \
+                   org.freedesktop.UPower.Suspend
+}
+
+_suspend_systemctl() {
+    systemctl suspend
+}
+
+# convert to array
+read -r -a SUSPEND_APPS <<< "${SUSPEND_APPS}"
+
+# use configured methods first, fallback on defaults
+APPS=("${SUSPEND_APPS[@]}" "${DEFAULT_APPS[@]}")
+
+for app in "${APPS[@]}"; do
+    if type -t _suspend_$app >/dev/null && command -v $app >/dev/null; then
+        # @TODO: make lockscreen configurable
+        lockscn
+        _suspend_$app
+        exit # if a future _suspend_* didn't exec/exit
+    fi
+done
+
+echo "found no suspend application. install a supported one (see help)" >&2
+exit 127
