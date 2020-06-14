@@ -24,7 +24,12 @@ Plug 'airblade/vim-gitgutter'
 Plug 'vim-scripts/The-NERD-tree'
   let NERDTreeWinPos = 'left'
   map <F3> :NERDTreeToggle<CR>
-   nnoremap <Leader>ff :NERDTreeFind<CR>
+  nnoremap <Leader>ff :NERDTreeFind<CR>
+  let NERDTreeQuitOnOpen = 1  " auto close tree upon file open
+  let NERDTreeAutoDeleteBuffer = 1  " del buffer when tree del a file
+  let NERDTreeMinimalUI = 1
+  let NERDTreeDirArrows = 1
+
 
 Plug 'ctrlpvim/ctrlp.vim'
   let g:ctrlp_working_path_mode = 0 " dont manage working directory.
@@ -41,10 +46,12 @@ Plug 'tpope/vim-surround'
 Plug 'vim-vdebug/vdebug'
 
 " lang specific modules
-Plug 'puppetlabs/puppet-syntax-vim'
 Plug 'ekalinin/Dockerfile.vim'
-Plug 'c9s/perlomni.vim'
-Plug 'rust-lang/rust.vim'
+"Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+"Plug 'c9s/perlomni.vim'
+"Plug 'puppetlabs/puppet-syntax-vim'
+
+"Plug 'rust-lang/rust.vim'
 
 "Plug 'python-mode/python-mode'
 "Plug 'elixir-lang/vim-elixir'
