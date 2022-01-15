@@ -1,0 +1,154 @@
+#!/bin/bash
+
+# ISC License (ISC)
+# Copyright 2022 Farzad Ghanei
+#
+# Permission to use, copy, modify, and/or distribute this software for any purpose
+# with or without fee is hereby granted, provided that the above copyright notice and
+# this permission notice appear in all copies.
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD
+# TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.
+# IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+# CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+# PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+# ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+read -r -d '' USAGE <<EOU
+configures 1, 2 or 3 monitor output layout
+
+usage $0
+
+options:
+    -h, --help  show this help and exit
+    -l          left monitor (for 2/3 monitor layout)
+    -m          middle monitor (for 3 monitor layout)
+    -i          print information about detected/specified monitors
+
+config file:
+~/.123monsrc is sourced where these variables can configure 123mons:
+    left:       left monitor
+    middle:     middle monitor
+
+environment variables:
+config directives are shell variables, so could be passed upon invocation, only
+if not already defined in the config file.
+example: env left=eDP-1 $0
+
+exits with code 127 if xrandr is not available
+EOU
+
+EX_OK=0
+EX_CONFIG=64
+EX_UNAVAILABLE=127
+
+
+if [[ "$@" =~ '-h' || "$@" =~ 'help' ]]; then
+    echo "$USAGE"
+    exit $EX_OK
+fi
+
+if ! command -v xrandr >/dev/null; then
+    echo "xrandr is needed but not available"
+    exit $EX_UNAVAILABLE
+fi
+
+# func definisions, maybe overwritten in rc file
+function get_monitors() {
+    xrandr --listmonitors | grep -P '^\s*\d+\:' | grep -o -P '\S+$' | uniq | sort
+}
+
+function one_monitor() {
+    xrandr --auto
+}
+
+function two_monitors() {
+    local left=$1
+    local right=$2
+    xrandr --output $left --auto --rotate normal --pos 0x0 --left-of $right --output $right --auto --rotate normal
+}
+
+function three_monitors() {
+    local left=$1
+    local middle=$2
+    local right=$3
+    xrandr --output $left --auto --rotate normal --pos 0x0 --left-of $middle --output $middle --auto --rotate normal --left-of $right --output $right --auto --rotate normal
+}
+
+
+if [[ -e ~/.123monsrc ]]; then
+    source ~/.123monsrc
+fi
+
+# parse opts
+left="${left}"
+middle="${middle}"
+INFO=false
+
+while getopts "il:m:" opt; do
+    case "${opt}" in
+        i)
+            INFO=true
+            ;;
+        l)
+            left=${OPTARG}
+            ;;
+        m)
+            mid=${OPTARG}
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+set -e
+
+declare -a mons=($(get_monitors))
+declare -r -a all_mons=("${mons[@]}")
+readonly mon_cnt=${#mons[@]}
+
+if [ -z "$left" ]; then
+    left="${all_mons[0]}"
+elif [[ ! "${mons[*]}" =~ "$left" ]]; then
+    printf "invalid left monitor. available: %s\n" "${all_mons[*]}"
+    exit $EX_CONFIG
+fi
+mons=($(echo "${mons[@]/$left}" | xargs echo))  # pluck left from rest, trim spaces
+
+
+if [[ "$mon_cnt" -gt 2 ]]; then
+    if [ -z "$middle" ]; then
+        middle="${mons[0]}"
+    elif [[ ! "${mons[*]}" =~ "$middle" ]]; then
+        printf "invalid middle monitor. available: %s\n" "${all_mons[*]}"
+        exit $EX_CONFIG
+    fi
+    mons=($(echo "${mons[@]/$middle}" | xargs echo))  # pluck middle, trim spaces
+fi
+
+right="${mons[0]}"
+
+echo "Available ($mon_cnt): ${all_mons[*]}"
+echo "Left: $left"
+echo "Middle: $middle"
+echo "Right: $right"
+
+if $INFO; then
+    exit $EX_OK
+fi
+
+code=$EX_OK
+if [[ "$mon_cnt" -gt 2 ]]; then
+    echo 'Going to configure 3 monitor layout'
+    three_monitors $left $middle $right
+    code=$?
+elif [[ "$mon_cnt" -gt 1  ]]; then
+    echo 'Going to configure 2 monitor layout'
+    two_monitors $left $right
+    code=$?
+else
+    echo 'Going to configure 1 monitor layout'
+    one_monitor $left
+    code=$?
+fi
+
+echo "Done!"
+exit $code
