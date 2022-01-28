@@ -58,12 +58,14 @@ function get_monitors() {
 }
 
 function one_monitor() {
+    echo 'Going to configure 1 monitor layout'
     xrandr --auto
 }
 
 function two_monitors() {
     local left=$1
     local right=$2
+    echo 'Going to configure 2 monitor layout'
     xrandr --output $left --auto --rotate normal --pos 0x0 --left-of $right --output $right --auto --rotate normal
 }
 
@@ -71,6 +73,7 @@ function three_monitors() {
     local left=$1
     local middle=$2
     local right=$3
+    echo 'Going to configure 3 monitor layout'
     xrandr --output $left --auto --rotate normal --pos 0x0 --left-of $middle --output $middle --auto --rotate normal --left-of $right --output $right --auto --rotate normal
 }
 
@@ -93,7 +96,7 @@ while getopts "il:m:" opt; do
             left=${OPTARG}
             ;;
         m)
-            mid=${OPTARG}
+            middle=${OPTARG}
             ;;
     esac
 done
@@ -137,15 +140,12 @@ fi
 
 code=$EX_OK
 if [[ "$mon_cnt" -gt 2 ]]; then
-    echo 'Going to configure 3 monitor layout'
     three_monitors $left $middle $right
     code=$?
 elif [[ "$mon_cnt" -gt 1  ]]; then
-    echo 'Going to configure 2 monitor layout'
     two_monitors $left $right
     code=$?
 else
-    echo 'Going to configure 1 monitor layout'
     one_monitor $left
     code=$?
 fi
