@@ -7,8 +7,10 @@ call plug#begin('~/.vim/plugged')
 
 " this assumes fzf is installed separately on ~/.apps/fzf
 " see https://github.com/junegunn/fzf
-Plug '~/.apps/fzf' | Plug 'junegunn/fzf.vim'
-  noremap <C-T> :Files<CR>
+" Plug '~/.apps/fzf' | Plug 'junegunn/fzf.vim'
+Plug 'junegunn/fzf.vim'
+  noremap <C-P> :Files<CR>
+  noremap <C-T> :Rg<CR>
   noremap <Leader>t :Buffers<CR>
 
 Plug 'tpope/vim-fugitive'
@@ -31,12 +33,12 @@ Plug 'vim-scripts/The-NERD-tree'
   let NERDTreeDirArrows = 1
 
 
-Plug 'ctrlpvim/ctrlp.vim'
-  let g:ctrlp_working_path_mode = 0 " dont manage working directory.
-  let g:ctrlp_custom_ignore = {
-  \ 'dir':  '\v\c\.(git|svn)$',
-  \ 'file': '\v\c\.(swf|bak|png|gif|mov|ico|jpg|pdf)$',
-  \ }
+"Plug 'ctrlpvim/ctrlp.vim'
+"  let g:ctrlp_working_path_mode = 0 " dont manage working directory.
+"  let g:ctrlp_custom_ignore = {
+"  \ 'dir':  '\v\c\.(git|svn)$',
+"  \ 'file': '\v\c\.(swf|bak|png|gif|mov|ico|jpg|pdf)$',
+"  \ }
 
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
@@ -47,17 +49,13 @@ Plug 'vim-vdebug/vdebug'
 
 " lang specific modules
 Plug 'ekalinin/Dockerfile.vim'
-"Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+"Plug 'python-mode/python-mode'
 "Plug 'c9s/perlomni.vim'
 "Plug 'puppetlabs/puppet-syntax-vim'
 
 "Plug 'rust-lang/rust.vim'
 
-"Plug 'python-mode/python-mode'
-"Plug 'elixir-lang/vim-elixir'
-"Plug 'hhvm/vim-hack'
-"Plug 'alvan/vim-php-manual'
-"Plug 'neovimhaskell/haskell-vim'
 " required by vim-markdown. Text alignment and filtering
 " Plug 'godlygeek/tabular'
 " Plug 'plasticboy/vim-markdown'
@@ -112,14 +110,17 @@ autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "norm
 
 nnoremap <C-L> :noh<CR><C-L>
 inoremap jj <Esc>
+noremap ff :
+noremap rr :w!<CR>
+noremap vv :wq<CR>
 nnoremap <Leader>r :source ~/.vimrc<CR>
 nnoremap <Leader><Leader>r :e ~/.vimrc<CR>
-map <Leader>gs :Gstatus<CR>
-map <Leader>gc :Gcommit<CR>
-map <Leader>gm :Gcommit --amend<CR>
+map <Leader>gs :Git status<CR>
+map <Leader>gc :Git commit<CR>
+map <Leader>gm :Git commit --amend<CR>
 map <Leader>gll :Git log<CR>
 map <Leader>glp :Git log -p<CR>
-map <Leader>gb :Gblame<CR>
+map <Leader>gb :Git blame<CR>
 map <Leader>gdd :Git diff<CR>
 map <Leader>gdm :Git diff %<CR>
 map <Leader>gdf :Gdiff<CR>
