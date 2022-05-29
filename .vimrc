@@ -115,15 +115,14 @@ noremap rr :w!<CR>
 noremap vv :wq<CR>
 nnoremap <Leader>r :source ~/.vimrc<CR>
 nnoremap <Leader><Leader>r :e ~/.vimrc<CR>
-map <Leader>gs :Git status<CR>
 map <Leader>gc :Git commit<CR>
+map <Leader>gs :Git status<CR>
 map <Leader>gm :Git commit --amend<CR>
-map <Leader>gll :Git log<CR>
+map <Leader>gl :Git log<CR>
 map <Leader>glp :Git log -p<CR>
 map <Leader>gb :Git blame<CR>
 map <Leader>gdd :Git diff<CR>
 map <Leader>gdm :Git diff %<CR>
-map <Leader>gdf :Gdiff<CR>
 map <Leader>gg :Git 
 
 nmap <F1> <Esc>
