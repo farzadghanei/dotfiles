@@ -7,15 +7,24 @@ call plug#begin('~/.vim/plugged')
 
 " this assumes fzf is installed separately on ~/.apps/fzf
 " see https://github.com/junegunn/fzf
-" Plug '~/.apps/fzf' | Plug 'junegunn/fzf.vim'
+"Plug '~/.apps/fzf' | Plug 'junegunn/fzf.vim'
 Plug 'junegunn/fzf.vim'
   noremap <C-P> :Files<CR>
   noremap <C-T> :Rg<CR>
   noremap <Leader>t :Buffers<CR>
 
+Plug 'tpope/vim-surround'
 Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-commentary'
+" or
+"Plug 'scrooloose/nerdcommenter'
+" file explorer using netrw
+Plug 'tpope/vim-vinegar'
+
 Plug 'Lokaltog/vim-easymotion'
-Plug 'scrooloose/nerdcommenter'
+
+" autoclose brackets,parens, ...
+Plug 'jiangmiao/auto-pairs'
 
 Plug 'majutsushi/tagbar'
   nmap <F4> :TagbarToggle<CR>
@@ -44,12 +53,13 @@ Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
   let g:airline_theme='powerlineish'
 
-Plug 'tpope/vim-surround'
 Plug 'vim-vdebug/vdebug'
 
 " lang specific modules
 Plug 'ekalinin/Dockerfile.vim'
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+Plug 'davidhalter/jedi-vim'
+
 "Plug 'python-mode/python-mode'
 "Plug 'c9s/perlomni.vim'
 "Plug 'puppetlabs/puppet-syntax-vim'
