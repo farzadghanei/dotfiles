@@ -1,19 +1,44 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-simple chat completion using OpenAI APIs
-----------------------------------------
+Chat completion using OpenAI APIs
+---------------------------------
+
+This script is released under the terms of MIT license.
+
+License:
+Copyright (c) 2023 Farzad Ghanei (https://www.ghanei.net)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the “Software”), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
 """
 import sys
 import os
+from time import time
 from typing import List, Dict, Optional
 from argparse import Namespace, ArgumentParser
+import json
 import logging
-import readline
 import openai
 
 
-__VERSION__ = "0.1.0"
+__VERSION__ = "0.1.1"
 
 # defaults
 CHAT_MODELS = (
@@ -26,8 +51,9 @@ CHAT_MODELS = (
     "gpt-3.5-turbo-16k",
     "gpt-3.5-turbo-16k-0613",
 )
-DEFAULT_CHAT_MODEL = "gpt-3.5-turbo"
+DEFAULT_CHAT_MODEL = str(os.environ.get("OPENAI_CHAT_MODEL", "gpt-3.5-turbo"))
 
+COMMANDS_QUIT = (":q", "quit")
 
 logger = logging.getLogger()
 formatter = logging.Formatter("[%(asctime)s] %(message)s")
@@ -36,15 +62,16 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 
+ChatMessageType = Dict[str, str]
+ChatHistoryType = List[ChatMessageType]
+
+
 def send_chat_message(
-    message: str,
-    model: str = DEFAULT_CHAT_MODEL,
-    chat_history: List[Dict[str, str]] = None,
+    model: str,
+    chat_history: ChatHistoryType,
 ) -> str:
-    chat_history: List[Dict[str, str]] = [] if not chat_history else chat_history
     logger.debug(
-        "sending chat message ({} bytes), with {} history items",
-        len(message),
+        "sending {} chat history items",
         len(chat_history),
     )
     response = openai.ChatCompletion.create(
@@ -61,25 +88,62 @@ def send_chat_message(
     return response.choices[0]["message"]["content"].strip()
 
 
+def load_chat_history(file_path: str) -> ChatHistoryType:
+    with open(file_path, "r") as file:
+        saved_data = json.load(file)
+    return saved_data.get("chat_history", [])
+
+
+def save_chat_history(file_path: str, chat_history: ChatHistoryType) -> None:
+    saved_data = {
+        "format_verion": 1,
+        "prog_verion": __VERSION__,
+        "timestamp": time(),
+        "chat_history": chat_history,
+    }
+    with open(file_path, "w") as file:
+        json.dump(saved_data, file)
+
+
+def read_input() -> str:
+    lines = []
+    stop = False
+    try:
+        while not stop:
+            line = input()
+            lines.append(line)
+            if line.strip().lower() in COMMANDS_QUIT and len(lines) == 1:
+                break
+    except EOFError:
+        pass
+    return "\n".join(lines)
+
+
 def start_chat(
-    model: str = DEFAULT_CHAT_MODEL, chat_history: List[Dict[str, str]] = None
-) -> List[Dict[str, str]]:
-    print("Type 'quit' or 'end' to exit the chat.\n", file=sys.stderr)
+    model: str = DEFAULT_CHAT_MODEL, chat_history: Optional[ChatHistoryType] = None
+) -> ChatHistoryType:
+    print("Press Ctrl+D (EOF) to send the message.", file=sys.stderr)
+    print(
+        "Enter {}, or press Ctrl+C to quit.".format(" or ".join(COMMANDS_QUIT)),
+        file=sys.stderr,
+    )
 
-    chat_history: List[Dict[str, str]] = [] if not chat_history else chat_history
+    if chat_history is None:
+        chat_history = []
     while True:
-        user_input = input("> ")
-        if user_input.lower() in ["quit", "end"]:
+        print("> ", end="")
+        user_input = read_input().strip()
+        if user_input.lower() in COMMANDS_QUIT:
             break
-
+        if user_input == "":
+            continue
         message = {"role": "user", "content": user_input}
         chat_history.append(message)
 
-        bot_response = send_chat_message(
-            message, model=model, chat_history=chat_history
-        )
-        chat_history.append({"role": "assistant", "content": bot_response})
-        print(bot_response)
+        response = send_chat_message(model, chat_history)
+        chat_history.append({"role": "assistant", "content": response})
+        print()
+        print(response)
         logger.debug("chat history items: {}", len(chat_history))
     return chat_history
 
@@ -110,37 +174,45 @@ def main(args: Optional[List[str]] = None) -> int:
         choices=CHAT_MODELS,
         help="Chat model to use",
     )
+    parser.add_argument("-s", "--save-file", help="File path to save chat history")
+    parser.add_argument("-l", "--load-file", help="File path to load chat history")
 
-    def help(args):
+    def help(opts):
         parser.print_help()
 
     parser.set_defaults(func=help)
 
-    args = parser.parse_args(args)
-    if args.verbosity == 1:
+    opts: Namespace = parser.parse_args(args)
+    if opts.verbosity == 1:
         logger.setLevel(logging.INFO)
-    elif args.verbosity >= 2:
+    elif opts.verbosity >= 2:
         logger.setLevel(logging.DEBUG)
 
-    if args.api_key is not None:
-        openai.api_key = args.api_key
+    if opts.api_key is not None:
+        openai.api_key = opts.api_key
     elif not os.environ.get("OPENAI_API_KEY"):
         print("Please specify OpenAI API key", file=sys.stderr)
         return os.EX_CONFIG
 
     openai.debug = True
-    if args.api_base is not None:
-        openai.api_base = args.api_base
-    if args.proxy is not None:
+    if opts.api_base is not None:
+        openai.api_base = opts.api_base
+    if opts.proxy is not None:
         openai.proxy = {}
-        for proxy in args.proxy:
+        for proxy in opts.proxy:
             if proxy.startswith("https"):
                 openai.proxy["https"] = proxy
             elif proxy.startswith("http"):
                 openai.proxy["http"] = proxy
 
+    if opts.load_file and os.path.exists(opts.load_file):
+        chat_history = load_chat_history(opts.load_file)
+    else:
+        chat_history = []
     try:
-        start_chat(args.model)
+        chat_results = start_chat(str(opts.model))
+        if opts.save_file:
+            save_chat_history(opts.save_file, chat_results)
     except openai.error.OpenAIError as err:
         logger.exception(err)
         return os.EX_SOFTWARE
