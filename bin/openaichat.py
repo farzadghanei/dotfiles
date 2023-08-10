@@ -31,8 +31,9 @@ SOFTWARE.
 import sys
 import os
 from time import time
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Callable
 from argparse import Namespace, ArgumentParser
+from functools import partial
 import json
 import logging
 import openai
@@ -62,8 +63,10 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 
+# types
 ChatMessageType = Dict[str, str]
 ChatHistoryType = List[ChatMessageType]
+ChatCallbackType = Callable[[ChatHistoryType], None]
 
 
 def send_chat_message(
@@ -79,7 +82,7 @@ def send_chat_message(
         messages=[
             {
                 "role": "system",
-                "content": "You are a helpful assistant. Please provide a response completing this conversion.",
+                "content": "You are a helpful assistant. Please provide a response completing this conversion.",  # noqa: E501
             }
         ]
         + chat_history,
@@ -89,7 +92,7 @@ def send_chat_message(
 
 
 def load_chat_history(file_path: str) -> ChatHistoryType:
-    with open(file_path, "r") as file:
+    with open(file_path, "r", encoding="utf-8") as file:
         saved_data = json.load(file)
     return saved_data.get("chat_history", [])
 
@@ -98,10 +101,10 @@ def save_chat_history(file_path: str, chat_history: ChatHistoryType) -> None:
     saved_data = {
         "format_verion": 1,
         "prog_verion": __VERSION__,
-        "timestamp": time(),
+        "timestamp": int(time()),
         "chat_history": chat_history,
     }
-    with open(file_path, "w") as file:
+    with open(file_path, "w", encoding="utf-8") as file:
         json.dump(saved_data, file)
 
 
@@ -120,7 +123,9 @@ def read_input() -> str:
 
 
 def start_chat(
-    model: str = DEFAULT_CHAT_MODEL, chat_history: Optional[ChatHistoryType] = None
+    model: str = DEFAULT_CHAT_MODEL,
+    chat_history: Optional[ChatHistoryType] = None,
+    callback: Optional[ChatCallbackType] = None,
 ) -> ChatHistoryType:
     print("Press Ctrl+D (EOF) to send the message.", file=sys.stderr)
     print(
@@ -145,6 +150,8 @@ def start_chat(
         print()
         print(response)
         logger.debug("chat history items: {}", len(chat_history))
+        if callback is not None:
+            callback(chat_history)
     return chat_history
 
 
@@ -210,9 +217,10 @@ def main(args: Optional[List[str]] = None) -> int:
     else:
         chat_history = []
     try:
-        chat_results = start_chat(str(opts.model))
-        if opts.save_file:
-            save_chat_history(opts.save_file, chat_results)
+        callback = (
+            partial(save_chat_history, opts.save_file) if opts.save_file else None
+        )
+        start_chat(str(opts.model), chat_history, callback)
     except openai.error.OpenAIError as err:
         logger.exception(err)
         return os.EX_SOFTWARE
