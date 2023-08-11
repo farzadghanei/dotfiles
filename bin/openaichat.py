@@ -136,7 +136,7 @@ def start_chat(
     if chat_history is None:
         chat_history = []
     while True:
-        print("> ", end="")
+        print("> ", end="", file=sys.stderr)
         user_input = read_input().strip()
         if user_input.lower() in COMMANDS_QUIT:
             break
@@ -145,9 +145,9 @@ def start_chat(
         message = {"role": "user", "content": user_input}
         chat_history.append(message)
 
+        print("\nsending ...", file=sys.stderr)
         response = send_chat_message(model, chat_history)
         chat_history.append({"role": "assistant", "content": response})
-        print()
         print(response)
         logger.debug("chat history items: {}", len(chat_history))
         if callback is not None:
