@@ -129,7 +129,9 @@ def start_chat(
 ) -> ChatHistoryType:
     print("Press Ctrl+D (EOF) to send the message.", file=sys.stderr)
     print(
-        "Enter {}, or press Ctrl+C to quit.".format(" or ".join(COMMANDS_QUIT)),
+        "Enter {}, an empty message, or press Ctrl+C to quit.".format(
+            " or ".join(COMMANDS_QUIT)
+        ),
         file=sys.stderr,
     )
 
@@ -138,10 +140,8 @@ def start_chat(
     while True:
         print("> ", end="", file=sys.stderr)
         user_input = read_input().strip()
-        if user_input.lower() in COMMANDS_QUIT:
+        if user_input.lower() in COMMANDS_QUIT or user_input == "":
             break
-        if user_input == "":
-            continue
         message = {"role": "user", "content": user_input}
         chat_history.append(message)
 
