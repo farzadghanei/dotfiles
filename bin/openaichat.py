@@ -36,10 +36,19 @@ from argparse import Namespace, ArgumentParser
 from functools import partial
 import json
 import logging
-import openai
+import openai  # type: ignore
 
 
-__VERSION__ = "0.1.1"
+__VERSION__ = "0.1.2"
+__LICENSE__ = "OSI Approved :: MIT License"
+
+HELP_MESSAGE = """
+Chat completion using OpenAI APIs.
+
+Use --save to store the conversation, and --load to resume a previous one.
+type the messages to the standard input after program starts, or send a
+file to standard input: "cat question | {prog} --save chat.json --load chat.json"
+"""
 
 # defaults
 CHAT_MODELS = (
@@ -156,7 +165,8 @@ def start_chat(
 
 
 def main(args: Optional[List[str]] = None) -> int:
-    parser = ArgumentParser(description=None)
+    desc: str = HELP_MESSAGE.format(prog=sys.argv[0])
+    parser = ArgumentParser(description=desc)
     parser.add_argument(
         "-V",
         "--version",
