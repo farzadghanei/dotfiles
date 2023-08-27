@@ -39,15 +39,18 @@ import logging
 import openai  # type: ignore
 
 
-__VERSION__ = "0.1.2"
+__VERSION__ = "0.2.0"
 __LICENSE__ = "OSI Approved :: MIT License"
 
 HELP_MESSAGE = """
 Chat completion using OpenAI APIs.
 
-Use --save to store the conversation, and --load to resume a previous one.
-type the messages to the standard input after program starts, or send a
-file to standard input: "cat question | {prog} --save chat.json --load chat.json"
+Use --save to store the conversation, and --load to resume a previous one,
+or --session to save/load a session (not used with --save or --load).
+Type the messages to the standard input after program starts, or send a
+file to standard input: "cat question | {prog} --session quest".
+Or use prelude to provide context for the first message.
+"cat question | {prog} 'explain each line of the text below'"
 """
 
 # defaults
@@ -64,6 +67,7 @@ CHAT_MODELS = (
 DEFAULT_CHAT_MODEL = str(os.environ.get("OPENAI_CHAT_MODEL", "gpt-3.5-turbo"))
 
 COMMANDS_QUIT = (":q", "quit")
+DATA_PATH = str(os.environ.get("OPENAI_CHAT_DATA_PATH", "~/.config/openaichat"))
 
 logger = logging.getLogger()
 formatter = logging.Formatter("[%(asctime)s] %(message)s")
@@ -133,6 +137,7 @@ def read_input() -> str:
 
 def start_chat(
     model: str = DEFAULT_CHAT_MODEL,
+    prelude: str = "",
     chat_history: Optional[ChatHistoryType] = None,
     callback: Optional[ChatCallbackType] = None,
 ) -> ChatHistoryType:
@@ -151,7 +156,8 @@ def start_chat(
         user_input = read_input().strip()
         if user_input.lower() in COMMANDS_QUIT or user_input == "":
             break
-        message = {"role": "user", "content": user_input}
+
+        message = {"role": "user", "content": "{}\n{}".format(prelude, user_input)}
         chat_history.append(message)
 
         print("\nsending ...", file=sys.stderr)
@@ -193,6 +199,14 @@ def main(args: Optional[List[str]] = None) -> int:
     )
     parser.add_argument("-s", "--save-file", help="File path to save chat history")
     parser.add_argument("-l", "--load-file", help="File path to load chat history")
+    parser.add_argument(
+        "--session",
+        metavar="SESSION_NAME",
+        help="Name of the session to save/load chat history (not used with save/load)",
+    )
+    parser.add_argument(
+        "prelude", help="Optional prelude to the 1st message", nargs="?"
+    )
 
     def help(opts):
         parser.print_help()
@@ -222,15 +236,32 @@ def main(args: Optional[List[str]] = None) -> int:
             elif proxy.startswith("http"):
                 openai.proxy["http"] = proxy
 
-    if opts.load_file and os.path.exists(opts.load_file):
-        chat_history = load_chat_history(opts.load_file)
-    else:
-        chat_history = []
-    try:
-        callback = (
-            partial(save_chat_history, opts.save_file) if opts.save_file else None
+    chat_callback = None
+    data_dir = os.path.expanduser(DATA_PATH)
+    # Check if --session argument is passed
+    if opts.session:
+        if opts.save_file or opts.load_file:
+            print("Cannot use --session along with --save or --load.", file=sys.stderr)
+            return os.EX_USAGE
+
+        session_name = str(opts.session)
+        session_dir = os.path.join(data_dir, "sessions")
+        os.makedirs(session_dir, exist_ok=True)
+        session_file = f"{session_dir}/{session_name}.json"
+        chat_callback = partial(save_chat_history, session_file)
+        chat_history = (
+            load_chat_history(session_file) if os.path.exists(session_file) else []
         )
-        start_chat(str(opts.model), chat_history, callback)
+    else:  # no session
+        if opts.save_file:
+            chat_callback = partial(save_chat_history, opts.save_file)
+        if opts.load_file and os.path.exists(opts.load_file):
+            chat_history = load_chat_history(opts.load_file)
+        else:
+            chat_history = []
+
+    try:
+        start_chat(str(opts.model), opts.prelude, chat_history, chat_callback)
     except openai.error.OpenAIError as err:
         logger.exception(err)
         return os.EX_SOFTWARE
