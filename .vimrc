@@ -3,28 +3,30 @@ set nocompatible               " be iMproved
 filetype off                   " required!
 
 "Use plug.vim to install plugins
+
 call plug#begin('~/.vim/plugged')
+
+" themese/colors
+Plug 'jacoborus/tender.vim'
 
 " this assumes fzf is installed separately on ~/.apps/fzf
 " see https://github.com/junegunn/fzf
-"Plug '~/.apps/fzf' | Plug 'junegunn/fzf.vim'
+" Plug '~/.apps/fzf' | Plug 'junegunn/fzf.vim'
 Plug 'junegunn/fzf.vim'
   noremap <C-P> :Files<CR>
   noremap <C-T> :Rg<CR>
   noremap <Leader>t :Buffers<CR>
+
+Plug 'Lokaltog/vim-easymotion'
 
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-commentary'
 " or
 "Plug 'scrooloose/nerdcommenter'
+
 " file explorer using netrw
 Plug 'tpope/vim-vinegar'
-
-Plug 'Lokaltog/vim-easymotion'
-
-" autoclose brackets,parens, ...
-Plug 'jiangmiao/auto-pairs'
 
 Plug 'majutsushi/tagbar'
   nmap <F4> :TagbarToggle<CR>
@@ -41,11 +43,13 @@ Plug 'vim-scripts/The-NERD-tree'
   let NERDTreeMinimalUI = 1
   let NERDTreeDirArrows = 1
 
+" autoclose brackets,parens, ...
+" Plug 'jiangmiao/auto-pairs'
 
 "Plug 'ctrlpvim/ctrlp.vim'
 "  let g:ctrlp_working_path_mode = 0 " dont manage working directory.
 "  let g:ctrlp_custom_ignore = {
-"  \ 'dir':  '\v\c\.(git|svn)$',
+"  \ 'dir':  '\v\c\.(git|svn|tox|nox)$',
 "  \ 'file': '\v\c\.(swf|bak|png|gif|mov|ico|jpg|pdf)$',
 "  \ }
 
@@ -55,11 +59,31 @@ Plug 'vim-airline/vim-airline-themes'
 
 Plug 'vim-vdebug/vdebug'
 
+
 " lang specific modules
+Plug 'dense-analysis/ale'  " multi lang linter/fixers
+  let g:ale_linters_explicit = 0  " enable/disable all linters by default, only enable explicit ones
+  let g:ale_pattern_options_enabled = 1  " enable ALE for specific file types options
+  let g:ale_pattern_options = {'\.yaml\|yml$': {'ale_enabled': 1}}  " disable ALE for specific file types (yaml, ...)
+  let g:ale_linters = {'python': ['ruff', 'mypy'], 'yaml': ['yamllint']}
+  let g:ale_fixers = {'python': ['black'],}
+  let g:ale_disable_lsp = 1  " disable language server integration (use jedi-vim)
+  let g:ale_fix_on_save = 1
+  let g:ale_fix_on_save = 1
+  let g:ale_history_enabled = 1
+  let g:ale_hover_cursor = 1
+  "let b:ale_fix_on_save_ignore = {'filetype': ['fixer']}
+  nnoremap <Leader>af :ALEFix<CR>
+
+Plug 'davidhalter/jedi-vim' " python autocomplete, etc. installed with rpm jedi-vim
+    let g:jedi#completions_command = "<C-Space>"
+    let g:jedi#rename_command = "<Leader>r"
+    let g:jedi#popup_on_dot = 1
+    let g:jedi#popup_select_first = 1
+    let g:jedi#smart_auto_mappings = 1  " automatically add the "import" trigger the autocompletion popup
+
 Plug 'ekalinin/Dockerfile.vim'
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
-Plug 'davidhalter/jedi-vim'
-
 "Plug 'python-mode/python-mode'
 "Plug 'c9s/perlomni.vim'
 "Plug 'puppetlabs/puppet-syntax-vim'
@@ -123,12 +147,12 @@ inoremap jj <Esc>
 noremap ff :
 noremap rr :w!<CR>
 noremap vv :wq<CR>
-nnoremap <Leader>r :source ~/.vimrc<CR>
+"nnoremap <Leader>r :source ~/.vimrc<CR>  # collides with jedi#rename_command
 nnoremap <Leader><Leader>r :e ~/.vimrc<CR>
-map <Leader>gc :Git commit<CR>
 map <Leader>gs :Git status<CR>
+map <Leader>gc :Git commit<CR>
 map <Leader>gm :Git commit --amend<CR>
-map <Leader>gl :Git log<CR>
+map <Leader>gll :Git log<CR>
 map <Leader>glp :Git log -p<CR>
 map <Leader>gb :Git blame<CR>
 map <Leader>gdd :Git diff<CR>
