@@ -67,7 +67,7 @@ CHAT_MODELS = (
 DEFAULT_CHAT_MODEL = str(os.environ.get("OPENAI_CHAT_MODEL", "gpt-3.5-turbo"))
 
 COMMANDS_QUIT = (":q", "quit")
-DATA_PATH = str(os.environ.get("OPENAI_CHAT_DATA_PATH", "~/.config/openaichat"))
+DATA_PATH = str(os.environ.get("OAICHAT_DATA_PATH", "~/.config/oaichat"))
 
 logger = logging.getLogger()
 formatter = logging.Formatter("[%(asctime)s] %(message)s")
