@@ -39,7 +39,7 @@ import logging
 import openai  # type: ignore
 
 
-__VERSION__ = "0.2.0"
+__VERSION__ = "0.2.1"
 __LICENSE__ = "OSI Approved :: MIT License"
 
 HELP_MESSAGE = """
@@ -50,7 +50,12 @@ or --session to save/load a session (not used with --save or --load).
 Type the messages to the standard input after program starts, or send a
 file to standard input: "cat question | {prog} --session quest".
 Or use prelude to provide context for the first message.
-"cat question | {prog} 'explain each line of the text below'"
+"cat question | {prog} 'explain each line of the text below'".
+
+Environment variables: OPENAI_API_KEY (OpenAI API key),
+    OAICHAT_MODEL (default chat model to use),
+    OAICHAT_DATA_PATH (path to store chat sessions),
+    http_proxy, https_proxy
 """
 
 # defaults
@@ -64,7 +69,7 @@ CHAT_MODELS = (
     "gpt-3.5-turbo-16k",
     "gpt-3.5-turbo-16k-0613",
 )
-DEFAULT_CHAT_MODEL = str(os.environ.get("OPENAI_CHAT_MODEL", "gpt-3.5-turbo"))
+DEFAULT_CHAT_MODEL = str(os.environ.get("OAICHAT_MODEL", "gpt-3.5-turbo"))
 
 COMMANDS_QUIT = (":q", "quit")
 DATA_PATH = str(os.environ.get("OAICHAT_DATA_PATH", "~/.config/oaichat"))
@@ -152,7 +157,8 @@ def start_chat(
     if chat_history is None:
         chat_history = []
     while True:
-        print("> ", end="", file=sys.stderr)
+        if sys.stdin.isatty():
+            print("> ", end="", file=sys.stderr)
         user_input = read_input().strip()
         if user_input.lower() in COMMANDS_QUIT or user_input == "":
             break
@@ -171,7 +177,9 @@ def start_chat(
 
 
 def main(args: Optional[List[str]] = None) -> int:
+    data_dir = os.path.expanduser(DATA_PATH)
     desc: str = HELP_MESSAGE.format(prog=sys.argv[0])
+
     parser = ArgumentParser(description=desc)
     parser.add_argument(
         "-V",
@@ -189,7 +197,12 @@ def main(args: Optional[List[str]] = None) -> int:
     )
     parser.add_argument("-b", "--api-base", help="API base url")
     parser.add_argument("-k", "--api-key", help="API key")
-    parser.add_argument("-p", "--proxy", nargs="+", help="HTTP(s) proxy address")
+    parser.add_argument(
+        "-p",
+        "--proxy",
+        nargs="+",
+        help="HTTP(s) proxy address (starts with http(s)://)",
+    )
     parser.add_argument(
         "-m",
         "--model",
@@ -200,9 +213,11 @@ def main(args: Optional[List[str]] = None) -> int:
     parser.add_argument("-s", "--save-file", help="File path to save chat history")
     parser.add_argument("-l", "--load-file", help="File path to load chat history")
     parser.add_argument(
+        "-n",
         "--session",
         metavar="SESSION_NAME",
-        help="Name of the session to save/load chat history (not used with save/load)",
+        help="Name of the session to save/load chat history (not used with save/load, "
+        "stored in {})".format(data_dir),
     )
     parser.add_argument(
         "prelude", help="Optional prelude to the 1st message", nargs="?"
@@ -228,16 +243,26 @@ def main(args: Optional[List[str]] = None) -> int:
     openai.debug = True
     if opts.api_base is not None:
         openai.api_base = opts.api_base
+    openai.proxy = {}
     if opts.proxy is not None:
-        openai.proxy = {}
         for proxy in opts.proxy:
             if proxy.startswith("https"):
                 openai.proxy["https"] = proxy
             elif proxy.startswith("http"):
                 openai.proxy["http"] = proxy
+    else:
+        if os.environ.get("http_proxy"):
+            http_proxy = str(os.environ["http_proxy"]).strip()
+            if not http_proxy.startswith("http://"):
+                http_proxy = "http://" + http_proxy
+            openai.proxy["http"] = http_proxy
+        if os.environ.get("https_proxy"):
+            https_proxy = str(os.environ["https_proxy"]).strip()
+            if not https_proxy.startswith("https://"):
+                https_proxy = "https://" + https_proxy
+            openai.proxy["https"] = https_proxy
 
     chat_callback = None
-    data_dir = os.path.expanduser(DATA_PATH)
     # Check if --session argument is passed
     if opts.session:
         if opts.save_file or opts.load_file:
