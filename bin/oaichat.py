@@ -30,6 +30,7 @@ SOFTWARE.
 """
 import sys
 import os
+import platform
 from time import time
 from typing import List, Dict, Optional, Callable
 from argparse import Namespace, ArgumentParser
@@ -176,6 +177,17 @@ def start_chat(
     return chat_history
 
 
+def get_system_info() -> str:
+    free_desktop_release = platform.freedesktop_os_release()
+    os_name = free_desktop_release.get("NAME", platform.system())
+    os_release = free_desktop_release.get("VERSION", platform.release())
+    architecture = platform.machine()
+    shell = os.environ.get("SHELL", "unknown")
+    return "operating system '{}', release '{}', machine architecture '{}', user shell '{}'".format(  # noqa: E501
+        os_name, os_release, architecture, shell
+    )
+
+
 def main(args: Optional[List[str]] = None) -> int:
     data_dir = os.path.expanduser(DATA_PATH)
     desc: str = HELP_MESSAGE.format(prog=sys.argv[0])
@@ -218,6 +230,11 @@ def main(args: Optional[List[str]] = None) -> int:
         metavar="SESSION_NAME",
         help="Name of the session to save/load chat history (not used with save/load, "
         "stored in {})".format(data_dir),
+    )
+    parser.add_argument(
+        "--sys",
+        action="store_true",
+        help="Prefix prelude with current system info automatically",
     )
     parser.add_argument(
         "prelude", help="Optional prelude to the 1st message", nargs="?"
@@ -285,8 +302,14 @@ def main(args: Optional[List[str]] = None) -> int:
         else:
             chat_history = []
 
+    prelude = str(opts.prelude).strip()
+    if opts.sys:
+        prelude = "Given current system information is {}, {}".format(
+            get_system_info(), prelude
+        )
+
     try:
-        start_chat(str(opts.model), opts.prelude, chat_history, chat_callback)
+        start_chat(str(opts.model), prelude, chat_history, chat_callback)
     except openai.error.OpenAIError as err:
         logger.exception(err)
         return os.EX_SOFTWARE
