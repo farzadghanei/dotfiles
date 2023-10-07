@@ -17,7 +17,7 @@ Plug 'junegunn/fzf.vim'
   noremap <C-T> :Rg<CR>
   noremap <Leader>t :Buffers<CR>
 
-Plug 'Lokaltog/vim-easymotion'
+Plug 'easymotion/vim-easymotion'
 
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-fugitive'
