@@ -37,10 +37,11 @@ from argparse import Namespace, ArgumentParser
 from functools import partial
 import json
 import logging
-import openai  # type: ignore
+import httpx  # type: ignore
+from openai import OpenAI, APIError  # type: ignore
 
 
-__VERSION__ = "0.2.1"
+__VERSION__ = "1.0.0"
 __LICENSE__ = "OSI Approved :: MIT License"
 
 HELP_MESSAGE = """
@@ -66,8 +67,9 @@ CHAT_MODELS = (
     "gpt-4-32k",
     "gpt-4-32k-0613",
     "gpt-3.5-turbo",
-    "gpt-3.5-turbo-0613",
     "gpt-3.5-turbo-16k",
+    "gpt-3.5-turbo-1106",
+    "gpt-3.5-turbo-0613",
     "gpt-3.5-turbo-16k-0613",
 )
 DEFAULT_CHAT_MODEL = str(os.environ.get("OAICHAT_MODEL", "gpt-3.5-turbo"))
@@ -89,15 +91,16 @@ ChatCallbackType = Callable[[ChatHistoryType], None]
 
 
 def send_chat_message(
+    client: OpenAI,
     model: str,
     chat_history: ChatHistoryType,
 ) -> str:
+    """Send a chat message to OpenAI API and return the response."""
     logger.debug(
         "sending {} chat history items",
         len(chat_history),
     )
-    response = openai.ChatCompletion.create(
-        model=model,
+    response = client.chat.completions.create(
         messages=[
             {
                 "role": "system",
@@ -105,18 +108,22 @@ def send_chat_message(
             }
         ]
         + chat_history,
+        model=model,
     )
     logger.debug("received response. choices {}", len(response.choices))
-    return response.choices[0]["message"]["content"].strip()
+    choice = response.choices[0]
+    return choice.message.content.strip()
 
 
 def load_chat_history(file_path: str) -> ChatHistoryType:
+    """Load chat history from a file."""
     with open(file_path, "r", encoding="utf-8") as file:
         saved_data = json.load(file)
     return saved_data.get("chat_history", [])
 
 
 def save_chat_history(file_path: str, chat_history: ChatHistoryType) -> None:
+    """Save chat history to a file."""
     saved_data = {
         "format_verion": 1,
         "prog_verion": __VERSION__,
@@ -128,6 +135,7 @@ def save_chat_history(file_path: str, chat_history: ChatHistoryType) -> None:
 
 
 def read_input() -> str:
+    """Read input from stdin until EOF or a command is received."""
     lines = []
     stop = False
     try:
@@ -142,11 +150,14 @@ def read_input() -> str:
 
 
 def start_chat(
+    client: OpenAI,
     model: str = DEFAULT_CHAT_MODEL,
     prelude: str = "",
     chat_history: Optional[ChatHistoryType] = None,
     callback: Optional[ChatCallbackType] = None,
 ) -> ChatHistoryType:
+    """Start a chat session."""
+
     print("Press Ctrl+D (EOF) to send the message.", file=sys.stderr)
     print(
         "Enter {}, an empty message, or press Ctrl+C to quit.".format(
@@ -168,7 +179,7 @@ def start_chat(
         chat_history.append(message)
 
         print("\nsending ...", file=sys.stderr)
-        response = send_chat_message(model, chat_history)
+        response = send_chat_message(client, model, chat_history)
         chat_history.append({"role": "assistant", "content": response})
         print(response)
         logger.debug("chat history items: {}", len(chat_history))
@@ -178,6 +189,8 @@ def start_chat(
 
 
 def get_system_info() -> str:
+    """Return a string containing system information."""
+
     free_desktop_release = platform.freedesktop_os_release()
     os_name = free_desktop_release.get("NAME", platform.system())
     os_release = free_desktop_release.get("VERSION", platform.release())
@@ -188,7 +201,34 @@ def get_system_info() -> str:
     )
 
 
+def make_client(opts: Namespace) -> OpenAI:
+    """Create OpenAI client confgured with proxy and API key based on the options."""
+    proxy_conf = {}
+    if opts.proxy is not None:
+        proxy_conf["https://"] = opts.proxy
+        proxy_conf["http://"] = opts.proxy
+    else:
+        if os.environ.get("http_proxy"):
+            http_proxy = str(os.environ["http_proxy"]).strip()
+            if not http_proxy.startswith("http://"):
+                http_proxy = "http://" + http_proxy
+            proxy_conf["http://"] = http_proxy
+        if os.environ.get("https_proxy"):
+            https_proxy = str(os.environ["https_proxy"]).strip()
+            if not https_proxy.startswith("https://"):
+                https_proxy = "https://" + https_proxy
+            proxy_conf["https://"] = https_proxy
+    client_kwargs = {}
+    if opts.api_base is not None:
+        client_kwargs["base_url"] = opts.api_base
+    if proxy_conf.keys():
+        client_kwargs["http_client"] = httpx.Client(proxies=proxy_conf)
+    client = OpenAI(api_key=opts.api_key, **client_kwargs)
+    return client
+
+
 def main(args: Optional[List[str]] = None) -> int:
+    """Main entry point."""
     data_dir = os.path.expanduser(DATA_PATH)
     desc: str = HELP_MESSAGE.format(prog=sys.argv[0])
 
@@ -212,8 +252,7 @@ def main(args: Optional[List[str]] = None) -> int:
     parser.add_argument(
         "-p",
         "--proxy",
-        nargs="+",
-        help="HTTP(s) proxy address (starts with http(s)://)",
+        help="HTTP(s) proxy address (starts with http(s)://). Applies to both schemes.",
     )
     parser.add_argument(
         "-m",
@@ -251,33 +290,14 @@ def main(args: Optional[List[str]] = None) -> int:
     elif opts.verbosity >= 2:
         logger.setLevel(logging.DEBUG)
 
-    if opts.api_key is not None:
-        openai.api_key = opts.api_key
-    elif not os.environ.get("OPENAI_API_KEY"):
-        print("Please specify OpenAI API key", file=sys.stderr)
-        return os.EX_CONFIG
+    if opts.api_key is None:
+        if os.environ.get("OPENAI_API_KEY"):
+            opts.api_key = os.environ["OPENAI_API_KEY"]
+        else:
+            print("Please specify OpenAI API key", file=sys.stderr)
+            return os.EX_CONFIG
 
-    openai.debug = True
-    if opts.api_base is not None:
-        openai.api_base = opts.api_base
-    openai.proxy = {}
-    if opts.proxy is not None:
-        for proxy in opts.proxy:
-            if proxy.startswith("https"):
-                openai.proxy["https"] = proxy
-            elif proxy.startswith("http"):
-                openai.proxy["http"] = proxy
-    else:
-        if os.environ.get("http_proxy"):
-            http_proxy = str(os.environ["http_proxy"]).strip()
-            if not http_proxy.startswith("http://"):
-                http_proxy = "http://" + http_proxy
-            openai.proxy["http"] = http_proxy
-        if os.environ.get("https_proxy"):
-            https_proxy = str(os.environ["https_proxy"]).strip()
-            if not https_proxy.startswith("https://"):
-                https_proxy = "https://" + https_proxy
-            openai.proxy["https"] = https_proxy
+    client = make_client(opts)
 
     chat_callback = None
     # Check if --session argument is passed
@@ -309,8 +329,8 @@ def main(args: Optional[List[str]] = None) -> int:
         )
 
     try:
-        start_chat(str(opts.model), prelude, chat_history, chat_callback)
-    except openai.error.OpenAIError as err:
+        start_chat(client, str(opts.model), prelude, chat_history, chat_callback)
+    except APIError as err:
         logger.exception(err)
         return os.EX_SOFTWARE
     except KeyboardInterrupt:
