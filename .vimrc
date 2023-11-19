@@ -65,8 +65,8 @@ Plug 'dense-analysis/ale'  " multi lang linter/fixers
   let g:ale_linters_explicit = 0  " enable/disable all linters by default, only enable explicit ones
   let g:ale_pattern_options_enabled = 1  " enable ALE for specific file types options
   let g:ale_pattern_options = {'\.yaml\|yml$': {'ale_enabled': 1}}  " disable ALE for specific file types (yaml, ...)
-  let g:ale_linters = {'python': ['ruff', 'mypy'], 'yaml': ['yamllint']}
-  let g:ale_fixers = {'python': ['black'],}
+  let g:ale_linters = {'python': ['ruff', 'mypy'], 'yaml': ['yamllint'], 'go': ['gopls', 'golangci-lint']}
+  let g:ale_fixers = {'python': ['black'], 'go': ['gofmt', 'goimports']}
   let g:ale_disable_lsp = 1  " disable language server integration (use jedi-vim)
   let g:ale_fix_on_save = 1
   let g:ale_fix_on_save = 1
@@ -84,6 +84,16 @@ Plug 'davidhalter/jedi-vim' " python autocomplete, etc. installed with rpm jedi-
 
 Plug 'ekalinin/Dockerfile.vim'
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+    " explicit defaults
+    let g:go_code_completion_enabled = 1
+    let g:go_fmt_autosave = 1
+    let g:go_imports_autosave = 1
+    let g:go_doc_keywordprg_enabled = 1
+    let g:go_metalinter_autosave_enabled = ['all']
+    let g:go_metalinter_enabled = ['vet', 'revive', 'errcheck']
+    " overrdie defaults
+    let g:go_test_show_name = 1  " 0: Show the name of each failed test before the errors and logs output by the test
+    let g:go_auto_type_info = 1  " 0
 "Plug 'python-mode/python-mode'
 "Plug 'c9s/perlomni.vim'
 "Plug 'puppetlabs/puppet-syntax-vim'
