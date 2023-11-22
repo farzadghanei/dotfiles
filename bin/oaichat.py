@@ -166,8 +166,10 @@ def start_chat(
         file=sys.stderr,
     )
 
+    is_tty = sys.stdin.isatty()
     if chat_history is None:
         chat_history = []
+
     while True:
         if sys.stdin.isatty():
             print("> ", end="", file=sys.stderr)
@@ -178,7 +180,9 @@ def start_chat(
         message = {"role": "user", "content": "{}\n{}".format(prelude, user_input)}
         chat_history.append(message)
 
-        print("\nsending ...", file=sys.stderr)
+        if not is_tty:  # separate message from stdin with a blank line
+            print()
+        print("sending ...", file=sys.stderr)
         response = send_chat_message(client, model, chat_history)
         chat_history.append({"role": "assistant", "content": response})
         print(response)
@@ -339,4 +343,11 @@ def main(args: Optional[List[str]] = None) -> int:
 
 
 if __name__ == "__main__":
+    if sys.stdin.isatty():
+        # import readline to improve user experience for input()
+        try:
+            import readline  # noqa: F401
+        except ImportError:
+            pass
+
     sys.exit(main(sys.argv[1:]))
