@@ -58,7 +58,14 @@ Plug 'vim-airline/vim-airline-themes'
   let g:airline_theme='powerlineish'
 
 Plug 'vim-vdebug/vdebug'
-
+Plug 'github/copilot.vim', { 'branch': 'release' }
+   " disable copilot for specific file types
+   let g:copilot_filetypes = {
+        \ 'xml': v:true,
+        \ }
+   "let g:copilot_proxy = 'localhost:3128'
+  nnoremap <Leader>co :Copilot panel<CR>
+  nnoremap <Leader>cos :Copilot status<CR>
 
 " lang specific modules
 Plug 'dense-analysis/ale'  " multi lang linter/fixers
