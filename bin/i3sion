@@ -1,0 +1,240 @@
+#!/bin/bash
+
+# MIT License (MIT)
+# Copyright 2023 Farzad Ghanei
+# Permission is hereby granted, free of
+# charge, to any person obtaining a copy of this software and associated
+# documentation files (the “Software”), to deal in the Software without
+# restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software,
+# and to permit persons to whom the Software is furnished to do so, subject to
+# the following conditions: The above copyright notice and this permission
+# notice shall be included in all copies or substantial portions of the
+# Software.  THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO
+# EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES
+# OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+
+read -r -d '' USAGE <<EOU
+i3sion - reconfigure i3 and i3status to simulate switching desktop sessions
+
+usage $0
+
+options:
+    -h, --help  show this help and exit
+    -b          background reconfiguration
+    -n          skip i3 reconfiguration (by default only i3 is reconfigured)
+    -r          restart i3 after reconfiguration instead of reloading
+    -s          i3status reconfiguration
+    -v          verbose mode
+
+config file:
+I3SION_RC (~/.i3sionsrc) is sourced where variables can configure i3sion,
+and override functions/hooks to customize i3sion.
+
+environment variables:
+config directives are shell variables, so could be passed upon invocation and
+defined in the config file.
+
+ - I3SION_RC
+ - I3SION_BG_DIR
+ - I3_CONF_DIR
+ - I3STATUS_CONF_DIR
+
+ - I3SION_BG_RECONFIG
+ - I3SION_I3STATUS_RECONFIG
+ - I3SION_RESTART_I3
+ - I3SION_SKIP_I3_RECONFIG
+ - I3SION_VERBOSE
+
+exits with code 127 if required tools (i3-msg) are not available
+EOU
+
+EX_OK=0
+EX_CONFIG=64
+EX_IOERR=74
+EX_UNAVAILABLE=127
+
+if [[ "$@" =~ '-h' || "$@" =~ '--help' ]]; then
+    echo "$USAGE"
+    exit $EX_OK
+fi
+
+if ! command -v i3-msg >/dev/null; then
+    echo "i3-msg is needed but not available"
+    exit $EX_UNAVAILABLE
+fi
+
+# func definisions and default config, maybe overwritten in rc file
+I3SION_RC="${I3SION_RC:-$HOME/.i3sionrc}"
+I3SION_BG_DIR="${I3SION_BG_DIR:-$HOME/Pictures}"
+I3SION_DEFAULT_SESSION="${I3SION_DEFAULT_SESSION:-default}"
+
+I3_CONF_DIR="${I3_CONF_DIR:-$HOME/.config/i3}"
+I3STATUS_CONF_DIR="${I3STATUS_CONF_DIR:-$HOME/.config/i3status}"
+
+# flags
+I3SION_BG_RECONFIG="${I3SION_BG_RECONFIG:-false}"
+I3SION_I3STATUS_RECONFIG="${I3SION_I3STATUS_RECONFIG:-false}"
+I3SION_SKIP_I3_RECONFIG="${I3SION_SKIP_I3_RECONFIG:-false}"
+I3SION_VERBOSE="${I3SION_VERBOSE:-false}"
+I3SION_RESTART_I3="${I3SION_RESTART_I3:-false}"
+
+# hooks for customizing i3sion, session name is passed as argument
+function i3sion_pre_config() {
+    # pre sessoin config hook, session name is passed as argument,
+    # is called before i3 is reconfigured
+    # override this function to customize i3sion.
+    local session="$1"
+    echo "configuring i3sion ${session} ..."
+}
+
+function i3sion_post_config() {
+    # post sessoin config hook, session name is passed as argument
+    # is called after i3 is reconfigured and restarted/reloaded
+    # override this function to customize i3sion
+    local session="$1"
+    echo "i3sion ${session} configured!"
+}
+
+function i3sion_set_background() {
+    # set the desktop background, session name and file path are passed as arguments
+    # override this function to use a different tool
+    local session="$1"
+    local bg_file="$2"
+    if ! command -v feh >/dev/null; then
+        _err "feh is needed to set background but not available"
+        return $EX_UNAVAILABLE
+    fi
+    feh --bg-scale "$bg_file"
+}
+
+# load config file
+if [[ -e "${I3SION_RC}" ]]; then
+    if $I3SION_VERBOSE; then
+        echo "loading i3sion config from ${I3SION_RC}"
+    fi
+    source "${I3SION_RC}"
+fi
+
+
+while getopts "bnrsv" opt; do
+    case "${opt}" in
+        b)
+            I3SION_BG_RECONFIG=true
+            ;;
+        n)
+            I3SION_SKIP_I3_RECONFIG=true
+            ;;
+        r)
+            I3SION_RESTART_I3=true
+            ;;
+        s)
+            I3SION_I3STATUS_RECONFIG=true
+            ;;
+        v)
+            I3SION_VERBOSE=true
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+set -e
+
+function _err() {
+    local msg="$1"
+    echo "$msg" > /dev/stderr
+    logger --tag "i3sion" --priority user.err "$msg" || true
+    if command -v i3-nagbar >/dev/null; then
+        i3-nagbar --type error --message "i3sion: $msg"
+    else
+        notify-send --urgency critical --icon error "i3sion" "$msg" || true
+    fi
+}
+
+function _log() {
+    local msg="$1"
+    logger --tag "i3sion" "$msg" || true
+    if "$I3SION_VERBOSE"; then
+        echo "$msg"
+    fi
+}
+
+function reconfigure_i3() {
+    local session="$1"
+    local session_config_file="${I3_CONF_DIR}/config-${session}"
+    local config_file="${I3_CONF_DIR}/config"
+    if [[ ! -e "${session_config_file}" ]]; then
+        _err "no i3 config file for session ${session} on ${session_config_file}" > /dev/stderr
+        return $EX_IOERR
+    fi
+    _log "reconfiguring i3 for session ${session} with ${session_config_file}"
+    rm -f "${config_file}"
+    ln -s "$session_config_file" "${config_file}"
+    return $EX_OK
+}
+
+function reconfigure_i3status() {
+    local session="$1"
+    local session_config_file="${I3STATUS_CONF_DIR}/config-${session}"
+    local config_file="${I3STATUS_CONF_DIR}/config"
+    if [[ ! -e "${session_config_file}" ]]; then
+        _err "no i3status config file for sessoin ${session} on ${session_config_file}" > /dev/stderr
+        return $EX_IOERR
+    fi
+    _log "reconfiguring i3status for session ${session} with ${session_config_file}"
+    rm -f "${config_file}"
+    ln -s "$session_config_file" "${config_file}"
+    i3-msg restart
+}
+
+function reconfigure_background() {
+    local session="$1"
+    local bg_file="${I3SION_BG_DIR}/${session}.jpg"
+    if [[ ! -e "${bg_file}" ]]; then
+        _err "no background file for session ${session} on ${bg_file}" > /dev/stderr
+        return $EX_IOERR
+    fi
+    _log "reconfiguring background for session ${session} with ${bg_file}"
+    i3sion_set_background "$session" "$bg_file"
+    return $EX_OK
+}
+
+session_name="$1"
+if [[ -z "$session_name" ]]; then
+    session_name="$I3SION_DEFAULT_SESSION"
+fi
+
+i3sion_pre_config "$session_name"
+
+if $I3SION_I3STATUS_RECONFIG; then
+    reconfigure_i3status "$session_name"
+else
+    _log "skipping i3status reconfiguration"
+fi
+
+if $I3SION_SKIP_I3_RECONFIG; then
+    _log "skipping i3 reconfiguration"
+else
+    reconfigure_i3 "$session_name"
+fi
+
+if $I3SION_RESTART_I3; then
+    _log "restarting i3 to apply session ${session_name}"
+    i3-msg restart
+else
+    _log "reloading i3 to apply session ${session_name}"
+    i3-msg reload
+fi
+
+if $I3SION_BG_RECONFIG; then
+    _log "reconfiguring background"
+    reconfigure_background "$session_name"
+else
+    _log "skipping background reconfiguration"
+fi
+
+i3sion_post_config "$session_name"
