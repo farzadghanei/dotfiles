@@ -1,0 +1,96 @@
+general {
+    output_format = "i3bar"
+    colors = true
+    interval = 1
+
+    # colors from https://github.com/catppuccin/i3
+    # color_good = "#c6d0f5"
+    # color_degraded = "#ef9f76"
+    # color_bad = "#e78284"
+
+    # colors from https://gitlab.com/manzerbredes/i3-colors/-/blob/master/themes/mate
+    color_good = "#a4cb64"
+    color_degraded = "#aea79f"
+    color_bad = "#ff0000"
+}
+
+order += "cpu_usage"
+order += "load"
+order += "memory"
+order += "disk /"
+order += "path_exists VPN"
+# order += "ethernet enp2s0"
+order += "wireless wlp0s20f3"
+order += "volume master"
+order += "battery 0"
+order += "tztime local"
+
+
+ethernet enp2s0 {
+    format_up = "E: %ip (%speed)"
+    format_down = "E: down"
+}
+
+wireless wlp0s20f3 {
+    format_up = "W: (%essid:%quality:%ip)"
+    format_down = "W: down"
+}
+
+path_exists VPN {
+    # path exists when a VPN tunnel launched by nmcli/nm-applet is active
+    path = "/proc/sys/net/ipv4/conf/tun0"
+
+    # colors from https://github.com/catppuccin/i3
+    # color_good = "#e78284"
+    # color_degraded = "#ef9f76"
+    # color_bad = "#c6d0f5"
+
+    # colors from https://gitlab.com/manzerbredes/i3-colors/-/blob/master/themes/mate
+    color_good = "#a4cb64"
+    color_degraded = "#aea79f"
+    color_bad = "#526532"
+}
+
+tztime local {
+    format = "%Y-%m-%d %H:%M:%S"
+}
+
+load {
+    format = "%1min - %5min"
+}
+
+cpu_usage {
+    format = "%usage"
+}
+
+memory {
+   format = "%used"
+   threshold_degraded = "10%"
+   format_degraded = "MEMORY: %free"
+}
+
+
+disk "/" {
+    format = "%free"
+}
+
+volume master {
+   format = "♪: %volume"
+   format_muted = "♪: muted (%volume)"
+   device = "default"
+   mixer = "Master"
+   mixer_idx = 0
+}
+
+battery 0 {
+   format = "%status %percentage %remaining"
+   format_percentage = "%.01f%s"
+   format_down = "No battery"
+   status_chr = "⚡ CHR"
+   status_bat = "🔋 BAT"
+   status_unk = "? UNK"
+   status_full = "☻ FULL"
+   path = "/sys/class/power_supply/BAT%d/uevent"
+   low_threshold = 10
+   threshold_type = "percentage"
+}
