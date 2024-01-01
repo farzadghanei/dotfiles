@@ -198,4 +198,4 @@ exec --no-startup-id /usr/bin/xinput set-prop 'ELAN0672:00 04F3:3187 Touchpad' '
 exec --no-startup-id xinput set-prop 'MX Vertical Mouse' 'libinput Accel Speed' 0.8
 exec --no-startup-id /usr/bin/workrave
 exec --no-startup-id feh --bg-scale ~/Pictures/wallpapers/default.jpg
-
+exec --no-startup-id /usr/bin/setxkbmap -layout us,ir -option grp:alt_shift_toggle
