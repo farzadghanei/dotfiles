@@ -26,7 +26,7 @@ import os
 import subprocess
 from argparse import ArgumentParser
 
-__version__ = '2.0.0'
+__version__ = "2.0.0"
 
 
 class App(object):
@@ -37,18 +37,20 @@ class App(object):
 
     def parse_args(self, args):
         parser = ArgumentParser(
-            description="Run Git commands on all repos in the root path")
-        parser.add_argument('-c',
-                            '--confirm',
-                            help="confirm operation on each repo",
-                            action='store_true',
-                            default=False)
-        parser.add_argument('--verbose',
-                            help="be more verbose",
-                            action='store_true',
-                            default=False)
-        parser.add_argument('root', help="root path that contains git repos")
-        parser.add_argument('gitargs', nargs='+', help="Git command to run")
+            description="Run Git commands on all repos in the root path"
+        )
+        parser.add_argument(
+            "-c",
+            "--confirm",
+            help="confirm operation on each repo",
+            action="store_true",
+            default=False,
+        )
+        parser.add_argument(
+            "--verbose", help="be more verbose", action="store_true", default=False
+        )
+        parser.add_argument("root", help="root path that contains git repos")
+        parser.add_argument("gitargs", nargs="+", help="Git command to run")
         return parser.parse_args(args)
 
     def run(self):
@@ -75,13 +77,13 @@ class App(object):
                 item_path = path.join(root_path, item)
                 if path.isdir(item_path):
                     verbose("checking directory {} ...".format(item_path))
-                    if path.isdir(path.join(item_path, '.git')):
-                        if not confirm("execute in repo '{}' ({})".format(
-                                item, item_path),
-                                       quit=True):
+                    if path.isdir(path.join(item_path, ".git")):
+                        if not confirm(
+                            "execute in repo '{}' ({})".format(item, item_path),
+                            quit=True,
+                        ):
                             continue
-                        verbose("calling {} in repo {} ...".format(git_command,
-                                                                   item))
+                        verbose("calling {} in repo {} ...".format(git_command, item))
                         call(git_command, shell=True, cwd=item_path)
                 else:
                     verbose("skipping none repo item '{}'".format(item_path))
@@ -99,11 +101,11 @@ class App(object):
             return True
         if quit:
             ans = input(msg + " [N/y/q]? ").strip().lower()
-            if ans in ('q', 'quit'):
+            if ans in ("q", "quit"):
                 raise StopIteration
         else:
             ans = input(msg + " [N/y]? ").strip().lower()
-        return ans in ('y', 'yes', 'yeah')
+        return ans in ("y", "yes", "yeah")
 
 
 def main(args):
@@ -111,5 +113,5 @@ def main(args):
     return app.run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
