@@ -1,3 +1,4 @@
+#!/bin/bash
 # personal xsession login startup script
 # based on examples from man i3
 
@@ -20,6 +21,9 @@ export LC_TIME=en_US.UTF-8
 
 # Use XToolkit in java applications
 export AWT_TOOLKIT=XToolkit
+
+# Set background color
+xsetroot -solid "#555555"
 
 # Enable core dumps in case something goes wrong
 ulimit -c unlimited
