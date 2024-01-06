@@ -154,7 +154,7 @@ bindsym $mod+Shift+b exec blueberry
 bindsym $mod+Shift+g exec /usr/bin/google-chrome --password-store=gnome
 bindsym $mod+Shift+s exec spotify
 bindsym $mod+Shift+v exec vscode
-bindsym $mod+Shift+w exec workrave
+bindsym $mod+Shift+w exec pkill -f workrave
 
 # workspace-display assignements
 # always display workspace 6 on laptop
@@ -192,10 +192,18 @@ bindsym $mod+F9 exec --no-startup-id dbus-send --print-reply --dest=org.mpris.Me
 bindsym XF86MonBrightnessUp exec --no-startup-id brightnessctl set 10%+
 bindsym XF86MonBrightnessDown exec --no-startup-id brightnessctl set 10%-
 
+# floating pop up automatically
+for_window [window_role="pop-up"] floating enable
+for_window [window_role="task_dialog"] floating enable
+for_window [class="Arandr"] floating enable
+
 # --- customizations ---
 exec --no-startup-id /usr/bin/gnome-keyring-daemon --start --components=secrets
-exec --no-startup-id /usr/bin/xinput set-prop 'ELAN0672:00 04F3:3187 Touchpad' 'libinput Tapping Enabled' 1
+exec --no-startup-id xinput set-prop 'ELAN0672:00 04F3:3187 Touchpad' 'libinput Tapping Enabled' 1
 exec --no-startup-id xinput set-prop 'MX Vertical Mouse' 'libinput Accel Speed' 0.8
-exec --no-startup-id /usr/bin/workrave
+exec --no-startup-id workrave
 exec --no-startup-id feh --bg-scale ~/Pictures/wallpapers/default.jpg
 exec --no-startup-id /usr/bin/setxkbmap -layout us,ir -option grp:alt_shift_toggle
+
+# --- Load local customizations ---
+include $HOME/.config/i3/config-local
