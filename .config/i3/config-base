@@ -150,7 +150,7 @@ bindsym $mod+r mode "resize"
 # set i3lock color in each environment config
 # bindsym Ctrl+Mod1+l exec i3lock --color 505050
 bindsym $mod+Shift+a exec pavucontrol
-bindsym $mod+Shift+b exec blueberry
+bindsym $mod+Shift+b exec blueman-manager
 bindsym $mod+Shift+g exec /usr/bin/google-chrome --password-store=gnome
 bindsym $mod+Shift+s exec spotify
 bindsym $mod+Shift+v exec vscode
