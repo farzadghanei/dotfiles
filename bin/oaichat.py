@@ -170,6 +170,7 @@ def start_chat(
     if chat_history is None:
         chat_history = []
 
+    tx_counter = 0  # keep track of the number of messages sent
     while True:
         if sys.stdin.isatty():
             print("> ", end="", file=sys.stderr)
@@ -177,7 +178,10 @@ def start_chat(
         if user_input.lower() in COMMANDS_QUIT or user_input == "":
             break
 
-        message = {"role": "user", "content": "{}\n{}".format(prelude, user_input)}
+        if tx_counter == 0 and prelude:
+            user_input = "{}\n{}".format(prelude, user_input)
+        tx_counter += 1
+        message = {"role": "user", "content": "{}".format(user_input)}
         chat_history.append(message)
 
         if not is_tty:  # separate message from stdin with a blank line
