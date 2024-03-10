@@ -41,7 +41,7 @@ import httpx  # type: ignore
 from openai import OpenAI, APIError  # type: ignore
 
 
-__VERSION__ = "1.0.0"
+__VERSION__ = "1.1.0"
 __LICENSE__ = "OSI Approved :: MIT License"
 
 HELP_MESSAGE = """
@@ -57,6 +57,7 @@ Or use prelude to provide context for the first message.
 Environment variables: OPENAI_API_KEY (OpenAI API key),
     OAICHAT_MODEL (default chat model to use),
     OAICHAT_DATA_PATH (path to store chat sessions),
+    DEFAULT_SYSTEM_PROMPT (default system prompt),
     http_proxy, https_proxy
 """
 
@@ -73,6 +74,7 @@ CHAT_MODELS = (
     "gpt-3.5-turbo-16k-0613",
 )
 DEFAULT_CHAT_MODEL = str(os.environ.get("OAICHAT_MODEL", "gpt-3.5-turbo"))
+DEFAULT_SYSTEM_PROMPT = str(os.environ.get("OAICHAT_SYSTEM_PROMPT", "You are a helpful assistant."))
 
 COMMANDS_QUIT = (":q", "quit")
 DATA_PATH = str(os.environ.get("OAICHAT_DATA_PATH", "~/.config/oaichat"))
@@ -104,7 +106,7 @@ def send_chat_message(
         messages=[
             {
                 "role": "system",
-                "content": "You are a helpful assistant. Please provide a response completing this conversion.",  # noqa: E501
+                "content": DEFAULT_SYSTEM_PROMPT,
             }
         ]
         + chat_history,
