@@ -33,6 +33,7 @@ import os
 import platform
 from time import time
 from typing import List, Dict, Optional, Callable
+from datetime import date
 from argparse import Namespace, ArgumentParser
 from functools import partial
 import json
@@ -41,7 +42,7 @@ import httpx  # type: ignore
 from openai import OpenAI, APIError  # type: ignore
 
 
-__VERSION__ = "1.1.0"
+__VERSION__ = "1.1.2"
 __LICENSE__ = "OSI Approved :: MIT License"
 
 HELP_MESSAGE = """
@@ -61,8 +62,11 @@ Environment variables: OPENAI_API_KEY (OpenAI API key),
     http_proxy, https_proxy
 """
 
+TODAY = date.today().strftime("%B %d, %Y")
 # defaults
 CHAT_MODELS = (
+    "gpt-4o-mini",
+    "gpt-4o",
     "gpt-4",
     "gpt-4-0613",
     "gpt-4-32k",
@@ -74,7 +78,16 @@ CHAT_MODELS = (
     "gpt-3.5-turbo-16k-0613",
 )
 DEFAULT_CHAT_MODEL = str(os.environ.get("OAICHAT_MODEL", "gpt-3.5-turbo"))
-DEFAULT_SYSTEM_PROMPT = str(os.environ.get("OAICHAT_SYSTEM_PROMPT", "You are a helpful assistant."))
+DEFAULT_SYSTEM_PROMPT = str(
+    os.environ.get(
+        "OAICHAT_SYSTEM_PROMPT",
+        "You are a helpful AI assistant. "
+        f"Current date is {TODAY}. Provide concise and accurate responses for "
+        "short questions, and more thorough and detailed answers for more complex "
+        "or open-ended questions, in the manner a highly informed and intelligent "
+        "person communicates. Provide code examples when necessary in markdown format",
+    )
+)
 
 COMMANDS_QUIT = (":q", "quit")
 DATA_PATH = str(os.environ.get("OAICHAT_DATA_PATH", "~/.config/oaichat"))
@@ -82,6 +95,7 @@ DATA_PATH = str(os.environ.get("OAICHAT_DATA_PATH", "~/.config/oaichat"))
 logger = logging.getLogger()
 formatter = logging.Formatter("[%(asctime)s] %(message)s")
 handler = logging.StreamHandler(sys.stderr)
+handler.setLevel(logging.DEBUG)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
@@ -98,10 +112,8 @@ def send_chat_message(
     chat_history: ChatHistoryType,
 ) -> str:
     """Send a chat message to OpenAI API and return the response."""
-    logger.debug(
-        "sending {} chat history items",
-        len(chat_history),
-    )
+    logger.debug("sending {} chat history items".format(len(chat_history)))
+    logger.debug("system prompt: {}".format(DEFAULT_SYSTEM_PROMPT))
     response = client.chat.completions.create(
         messages=[
             {
@@ -112,7 +124,7 @@ def send_chat_message(
         + chat_history,
         model=model,
     )
-    logger.debug("received response. choices {}", len(response.choices))
+    logger.debug("received response. choices {}".format(len(response.choices)))
     choice = response.choices[0]
     return choice.message.content.strip()
 
@@ -192,7 +204,7 @@ def start_chat(
         response = send_chat_message(client, model, chat_history)
         chat_history.append({"role": "assistant", "content": response})
         print(response)
-        logger.debug("chat history items: {}", len(chat_history))
+        logger.debug("chat history items: {}".format(len(chat_history)))
         if callback is not None:
             callback(chat_history)
     return chat_history
@@ -255,7 +267,7 @@ def main(args: Optional[List[str]] = None) -> int:
         action="count",
         dest="verbosity",
         default=0,
-        help="openAI library verbosity",
+        help="verbosity level, repeat for more verbose, 2+ is debug",
     )
     parser.add_argument("-b", "--api-base", help="API base url")
     parser.add_argument("-k", "--api-key", help="API key")
