@@ -39,6 +39,8 @@ wireless wlp0s20f3 {
 path_exists VPN {
     # path exists when a VPN tunnel launched by nmcli/nm-applet is active
     path = "/proc/sys/net/ipv4/conf/tun0"
+    # or check $interface_name
+    # path = "/proc/net/dev_snmp6/$interface_name"
 
     # colors from https://github.com/catppuccin/i3
     # color_good = "#e78284"
