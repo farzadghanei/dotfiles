@@ -1,0 +1,114 @@
+#!/bin/bash
+
+APP_NAME=$(basename "$0")
+
+read -r -d '' USAGE <<EOU
+Checks a URL and sends a notification if it is unavailable
+
+usage $APP_NAME [options] URL
+
+options:
+    -h,--help   show this help and exit
+    -H          add extra header
+    -m          error message to display
+    -o          extra CURL options
+    -t          error title to display
+
+exits with code 127 if curl/notify-send are not available
+EOU
+
+EX_OK=0
+EX_ERR=1
+EX_CONFIG=64
+EX_UNAVAILABLE=127
+
+
+if [[ "$@" =~ '-h' || "$@" =~ 'help' ]]; then
+    echo "$USAGE"
+    exit $EX_OK
+fi
+
+if ! command -v curl >/dev/null; then
+    echo "curl is needed but not available"
+    exit $EX_UNAVAILABLE
+fi
+
+if ! command -v notify-send >/dev/null; then
+    echo "notify-send is needed but not available"
+    exit $EX_UNAVAILABLE
+fi
+
+function check_url {
+    local url=$1
+    shift
+    local header=$1
+    shift
+    local extra_args=$@
+    local exit_code=0
+
+    if [ -n "$header" ]; then
+        curl $extra_args -H "$header" --fail -o /dev/null "$url"
+        exit_code=$?
+    else
+        curl $extra_args --fail -o /dev/null "$url"
+        exit_code=$?
+    fi
+    return $exit_code
+}
+
+function alert_msg {
+    notify-send --app-name "${APP_NAME}" -u critical --category alert "$@"
+}
+
+function log {
+    logger -t "${APP_NAME}" "$@"
+    if [[ -t 1 ]]; then
+        echo "$@"
+    fi
+}
+
+
+# parse opts
+options="-4 --silent"
+header=""
+message=""
+title="URL Unavailable"
+
+while getopts "H:m:o:t:" opt; do
+    case "${opt}" in
+        H)
+            header=${OPTARG}
+            ;;
+        o)
+            options=${OPTARG}
+            ;;
+        m)
+            message=${OPTARG}
+            ;;
+        t)
+            title=${OPTARG}
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+url=$1
+
+if [ -z "$url" ]; then
+    printf "empty URL"
+    exit $EX_CONFIG
+fi
+
+if [ -z "$message" ]; then
+    message="'${url}' is uanvailable!"
+fi
+
+log "checking URL $url"
+
+if check_url "$url" "${header}" $options; then
+    log "$url is up"
+else
+    log "$url is unavailable. Sending alert"
+    alert_msg "$title" "$message"
+    exit $EX_ERR
+fi
